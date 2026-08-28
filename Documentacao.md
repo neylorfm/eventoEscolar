@@ -82,7 +82,14 @@ Registro das inscrições efetuadas.
    - Filtro por Turma e por Categoria.
    - Campo de busca instantânea (filtra por Nome ou Matrícula).
    - Edição de pontos e situação diretamente na tabela (quando autenticado).
-   - Botão de impressão otimizada (`@media print` oculta menus e foca na tabela).
+   - **Impressão Smart para Jurados:**
+     - Cabeçalho formal com **Nome do Evento**, espaço para **Data**, **Nome do Avaliador(a)** e **Categoria**.
+     - **Coluna de Marcação (`AVALIAR [ ]`)**: Largura dimensionada para o jurado assinalar com visto (✓) os alunos atribuídos à sua banca.
+     - **Colunas Otimizadas**: Removidas as colunas *Matrícula* e *Disciplinas* para maximizar a área útil da folha.
+     - **Coluna `VISTO / OBS` Expandida**: Configurada como a maior coluna da tabela para anotações e pareceres dos jurados.
+     - **5 Colunas de Códigos (C1 a C5)**: Espaço para pontuação de critérios individuais.
+     - Regras de pontuação: `EM ABERTO` (em branco), `REALIZADO` (pontuação numérica), `NAO REALIZADO` (`0`).
+     - **Folha de Critérios Exclusiva**: Anexa uma folha separada com tabela dos 5 códigos e pautas limpas para descrição de critérios e assinaturas da banca.
 2. **Aba Cadastro:**
    - Seleção facilitada de Aluno (com filtro prévio por Turma).
    - Seleção de Categoria e Disciplinas com bloqueio visual automático de itens já preenchidos.

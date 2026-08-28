@@ -15,19 +15,156 @@
             display: block;
         }
 
+        /* Container de impressão oculto na tela */
+        #areaImpressaoJurados {
+            display: none;
+        }
+
         @media print {
+            @page {
+                size: landscape;
+                margin: 8mm 10mm;
+            }
+
+            html, body {
+                background: white !important;
+                color: #000000 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 11px !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
 
             nav,
-            .no-print {
+            .no-print,
+            .tab-content,
+            #bannerModoLeitura,
+            .swal2-container {
                 display: none !important;
             }
 
-            body {
-                background: white;
+            #areaImpressaoJurados {
+                display: block !important;
+                width: 100% !important;
             }
 
-            #tabelaRelatorio {
-                box-shadow: none;
+            .print-page {
+                page-break-after: always;
+                break-after: page;
+                margin-bottom: 20px;
+            }
+
+            .print-page:last-child {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            .page-break-before {
+                page-break-before: always;
+                break-before: page;
+            }
+
+            .avoid-break {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            table.tabela-jurados {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                table-layout: fixed !important;
+                margin-top: 8px;
+                margin-bottom: 10px;
+            }
+
+            table.tabela-jurados th, 
+            table.tabela-jurados td {
+                border: 1px solid #1e293b !important;
+                padding: 5px 6px;
+                text-align: left;
+                vertical-align: middle;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+            }
+
+            table.tabela-jurados th {
+                background-color: #f1f5f9 !important;
+                font-weight: bold;
+                font-size: 10px;
+                text-transform: uppercase;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .col-num {
+                width: 28px !important;
+                min-width: 28px !important;
+                max-width: 28px !important;
+                text-align: center !important;
+            }
+
+            .col-check {
+                width: 58px !important;
+                min-width: 58px !important;
+                max-width: 62px !important;
+                text-align: center !important;
+                font-size: 9px !important;
+                white-space: nowrap !important;
+            }
+
+            .col-turma {
+                width: 48px !important;
+                min-width: 48px !important;
+                max-width: 52px !important;
+                text-align: center !important;
+            }
+
+            .col-nome {
+                width: 230px !important;
+                min-width: 200px !important;
+                max-width: 250px !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                word-break: break-word !important;
+                line-height: 1.2 !important;
+            }
+
+            .col-cod {
+                width: 34px !important;
+                min-width: 34px !important;
+                max-width: 34px !important;
+                text-align: center !important;
+            }
+
+            .col-pontos {
+                width: 48px !important;
+                min-width: 48px !important;
+                max-width: 52px !important;
+                text-align: center !important;
+                font-weight: bold;
+            }
+
+            .col-visto {
+                width: auto !important;
+                min-width: 260px !important;
+                text-align: left !important;
+            }
+
+            .cabecalho-impresso {
+                border-bottom: 2px solid #0f172a;
+                padding-bottom: 6px;
+                margin-bottom: 8px;
+            }
+
+            .tabela-criterios {
+                table-layout: fixed !important;
+            }
+
+            .tabela-criterios th,
+            .tabela-criterios td {
+                border: 1px solid #334155 !important;
+                padding: 8px 10px;
             }
         }
 
@@ -99,9 +236,9 @@
 
                 <div class="flex justify-between items-center mb-6 no-print flex-wrap gap-3">
                     <h2 class="text-2xl font-bold text-indigo-700">Relatório e Situação</h2>
-                    <button onclick="window.print()"
-                        class="bg-slate-600 text-white py-2 px-4 rounded-md hover:bg-slate-700 flex items-center gap-2 text-sm font-semibold transition">
-                        🖨️ Imprimir
+                    <button onclick="abrirModalImpressao()"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center gap-2 text-sm font-semibold shadow transition transform active:scale-95">
+                        🖨️ Imprimir Ficha de Jurados
                     </button>
                 </div>
 
@@ -1071,7 +1208,349 @@
                 })
                 .gerarPlanilhasResultados(folderId, substituirConfirma, getToken());
         }
+
+        // =================================================================================
+        // IMPRESSÃO SMART PARA JURADOS (AGRUPAMENTO POR CATEGORIA + FOLHA DE CRITÉRIOS)
+        // =================================================================================
+
+        let criteriosJuradosSalvos = {
+            c1: "C1 - Critério 1",
+            c2: "C2 - Critério 2",
+            c3: "C3 - Critério 3",
+            c4: "C4 - Critério 4",
+            c5: "C5 - Critério 5"
+        };
+
+        function getCadastrosFiltrados() {
+            const fTurma = document.getElementById('filtroTurma') ? document.getElementById('filtroTurma').value : "";
+            const fCat = document.getElementById('filtroCategoria') ? document.getElementById('filtroCategoria').value : "";
+            const fBusca = document.getElementById('filtroBusca') ? document.getElementById('filtroBusca').value.toLowerCase() : "";
+
+            return BD.cadastros.filter(c => {
+                const aluno = mapaAlunos[c.matricula];
+                if (!aluno) return false;
+                return (fTurma === "" || aluno.turma === fTurma) &&
+                    (fCat === "" || c.categoria === fCat) &&
+                    (fBusca === "" || aluno.nome.toLowerCase().includes(fBusca) || c.matricula.includes(fBusca));
+            });
+        }
+
+        function abrirModalImpressao() {
+            const filtrados = getCadastrosFiltrados();
+            if (filtrados.length === 0) {
+                Swal.fire('Atenção', 'Nenhum registro encontrado com os filtros atuais para gerar a ficha de jurados.', 'warning');
+                return;
+            }
+
+            const catsSet = new Set(filtrados.map(c => c.categoria));
+            const totalCats = catsSet.size;
+            const fTurma = document.getElementById('filtroTurma') ? document.getElementById('filtroTurma').value : "";
+
+            Swal.fire({
+                title: '🖨️ Impressão Smart para Jurados',
+                html: `
+                    <div class="text-left text-sm space-y-3 mt-2">
+                        <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-md text-xs text-indigo-900">
+                            <p class="font-bold text-sm mb-1">📋 Resumo da Ficha de Avaliação:</p>
+                            <p>• <b>Total de Alunos:</b> ${filtrados.length}</p>
+                            <p>• <b>Categorias (${totalCats}):</b> ${Array.from(catsSet).join(', ')}</p>
+                            ${fTurma ? `<p>• <b>Filtro de Turma:</b> ${fTurma}</p>` : ''}
+                            <p class="mt-2 text-slate-600">
+                                ✔ Agrupado por <b>Categoria</b> com quebras de página automáticas.<br>
+                                ✔ <b>5 Colunas de Códigos</b> (C1 a C5) para notas da banca.<br>
+                                ✔ Pontuação: <i>Em Aberto</i> (em branco), <i>Realizado</i> (pontos), <i>Não Realizado</i> (0).<br>
+                                ✔ <b>Folha separada</b> com a tabela dos 5 códigos para redação dos critérios.
+                            </p>
+                        </div>
+
+                        <div>
+                            <button type="button" onclick="document.getElementById('divConfigCriterios').classList.toggle('hidden')"
+                                class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 underline">
+                                ⚙️ Personalizar descrição dos 5 códigos de critérios (opcional)
+                            </button>
+                            <div id="divConfigCriterios" class="hidden mt-2 p-2.5 bg-slate-50 border rounded-md space-y-2 text-xs">
+                                <p class="text-slate-500">Defina o nome dos critérios para saírem na folha de critérios (ou deixe como está para preenchimento à mão):</p>
+                                <div class="grid grid-cols-1 gap-1.5">
+                                    <input type="text" id="swal-c1" class="border rounded p-1.5 text-xs w-full" placeholder="C1 - Descrição..." value="${criteriosJuradosSalvos.c1}">
+                                    <input type="text" id="swal-c2" class="border rounded p-1.5 text-xs w-full" placeholder="C2 - Descrição..." value="${criteriosJuradosSalvos.c2}">
+                                    <input type="text" id="swal-c3" class="border rounded p-1.5 text-xs w-full" placeholder="C3 - Descrição..." value="${criteriosJuradosSalvos.c3}">
+                                    <input type="text" id="swal-c4" class="border rounded p-1.5 text-xs w-full" placeholder="C4 - Descrição..." value="${criteriosJuradosSalvos.c4}">
+                                    <input type="text" id="swal-c5" class="border rounded p-1.5 text-xs w-full" placeholder="C5 - Descrição..." value="${criteriosJuradosSalvos.c5}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '🖨️ Imprimir Ficha Completa',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4f46e5',
+                preConfirm: () => {
+                    const inputC1 = document.getElementById('swal-c1');
+                    if (inputC1) {
+                        criteriosJuradosSalvos = {
+                            c1: document.getElementById('swal-c1').value || "C1 - Critério 1",
+                            c2: document.getElementById('swal-c2').value || "C2 - Critério 2",
+                            c3: document.getElementById('swal-c3').value || "C3 - Critério 3",
+                            c4: document.getElementById('swal-c4').value || "C4 - Critério 4",
+                            c5: document.getElementById('swal-c5').value || "C5 - Critério 5"
+                        };
+                    }
+                    return true;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    gerarEImprimirFichaJurados();
+                }
+            });
+        }
+
+        function gerarEImprimirFichaJurados() {
+            gerarHTMLImpressaoJurados();
+            setTimeout(() => {
+                window.print();
+            }, 150);
+        }
+
+        window.addEventListener('beforeprint', () => {
+            gerarHTMLImpressaoJurados();
+        });
+
+        function gerarHTMLImpressaoJurados() {
+            const container = document.getElementById('areaImpressaoJurados');
+            if (!container) return;
+
+            const filtrados = getCadastrosFiltrados();
+            const nomeEvento = BD.nomeEvento || "Semana de Talentos";
+
+            // Agrupa os alunos por Categoria
+            const categoriasMap = {};
+            filtrados.forEach(c => {
+                const cat = c.categoria || "SEM CATEGORIA";
+                if (!categoriasMap[cat]) categoriasMap[cat] = [];
+                categoriasMap[cat].push(c);
+            });
+
+            const categoriasOrdenadas = Object.keys(categoriasMap).sort();
+
+            let html = "";
+
+            if (categoriasOrdenadas.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-lg">Nenhum participante encontrado para impressão.</div>`;
+                return;
+            }
+
+            const totalPaginas = categoriasOrdenadas.length + 1;
+
+            // 1. FOLHAS DE AVALIAÇÃO AGRUPADAS POR CATEGORIA
+            categoriasOrdenadas.forEach((catNome, idxCat) => {
+                const inscricoesCat = categoriasMap[catNome];
+                inscricoesCat.sort((x, y) => {
+                    const ax = mapaAlunos[x.matricula] || { turma: "", nome: "" };
+                    const ay = mapaAlunos[y.matricula] || { turma: "", nome: "" };
+                    if (ax.turma !== ay.turma) return ax.turma.localeCompare(ay.turma);
+                    return ax.nome.localeCompare(ay.nome);
+                });
+
+                html += `
+                    <div class="print-page">
+                        <!-- Cabeçalho do Evento, Data, Avaliador e Categoria -->
+                        <div class="cabecalho-impresso">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+                                <div>
+                                    <h1 style="font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">
+                                        ${nomeEvento}
+                                    </h1>
+                                    <div style="font-size: 12px; font-weight: 600; color: #334155; margin-top: 2px;">
+                                        FICHA DE AVALIAÇÃO DA BANCA JULGADORA — <span style="color: #4338ca; font-weight: bold; font-size: 13px;">CATEGORIA: ${catNome.toUpperCase()}</span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right; font-size: 10px; color: #475569;">
+                                    <div><b>Página ${idxCat + 1} de ${totalPaginas}</b></div>
+                                    <div>Total de Inscritos: <b>${inscricoesCat.length}</b></div>
+                                </div>
+                            </div>
+
+                            <!-- Linha com Avaliador(a), Data e Assinatura -->
+                            <div style="display: grid; grid-template-columns: 2.2fr 1fr 1fr; gap: 8px; font-size: 10.5px; margin-top: 6px; background-color: #f8fafc; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <div><b>Avaliador(a) / Jurado(a):</b> _____________________________________________</div>
+                                <div><b>Data:</b> ____ / ____ / ________</div>
+                                <div><b>Assinatura:</b> ___________________________</div>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Avaliação -->
+                        <table class="tabela-jurados">
+                            <thead>
+                                <tr>
+                                    <th class="col-num" style="text-align: center;">Nº</th>
+                                    <th class="col-check" style="text-align: center;" title="Marque os alunos avaliados por você nesta folha">AVALIAR</th>
+                                    <th class="col-turma" style="text-align: center;">TURMA</th>
+                                    <th class="col-nome">NOME DO ALUNO(A)</th>
+                                    <th class="col-cod" title="Critério 1">C1</th>
+                                    <th class="col-cod" title="Critério 2">C2</th>
+                                    <th class="col-cod" title="Critério 3">C3</th>
+                                    <th class="col-cod" title="Critério 4">C4</th>
+                                    <th class="col-cod" title="Critério 5">C5</th>
+                                    <th class="col-pontos" title="Pontuação">PONTOS</th>
+                                    <th class="col-visto">VISTO / OBS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                inscricoesCat.forEach((c, idx) => {
+                    const a = mapaAlunos[c.matricula] || { turma: "—", nome: c.matricula };
+
+                    // Regra de pontuação:
+                    // - EM ABERTO -> em branco
+                    // - REALIZADO -> pontuação real
+                    // - NAO REALIZADO -> 0
+                    let pontosFormatado = "";
+                    if (c.situacao === "REALIZADO") {
+                        pontosFormatado = `${c.pontos}`;
+                    } else if (c.situacao === "NAO REALIZADO") {
+                        pontosFormatado = "0";
+                    } else {
+                        pontosFormatado = "&nbsp;";
+                    }
+
+                    html += `
+                        <tr class="avoid-break" style="height: 32px;">
+                            <td class="col-num" style="text-align: center; font-weight: bold;">${idx + 1}</td>
+                            <td class="col-check" style="text-align: center;">
+                                <div style="width: 14px; height: 14px; border: 1.5px solid #1e293b; border-radius: 2px; margin: 0 auto; background-color: #ffffff;"></div>
+                            </td>
+                            <td class="col-turma" style="text-align: center; font-weight: 600;">${a.turma}</td>
+                            <td class="col-nome">
+                                <div style="font-weight: 600; text-transform: uppercase; font-size: 9.5px; line-height: 1.15; word-break: break-word; overflow-wrap: break-word; white-space: normal;">
+                                    ${a.nome}
+                                </div>
+                            </td>
+                            <td class="col-cod">&nbsp;</td>
+                            <td class="col-cod">&nbsp;</td>
+                            <td class="col-cod">&nbsp;</td>
+                            <td class="col-cod">&nbsp;</td>
+                            <td class="col-cod">&nbsp;</td>
+                            <td class="col-pontos" style="background-color: #fafafa; font-size: 11px;">${pontosFormatado}</td>
+                            <td class="col-visto">&nbsp;</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+
+                        <!-- Rodapé da Categoria -->
+                        <div class="avoid-break" style="margin-top: 8px; font-size: 9.5px; color: #475569; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
+                            <div>
+                                <span>* Coluna <b>Avaliar [ ]</b> para marcar os participantes sob sua responsabilidade. Códigos <b>C1 a C5</b> conforme Folha de Critérios.</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span>Parecer / Visto do(a) Jurado(a): _____________________________________________</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 2. FOLHA SEPARADA: TABELA COM OS 5 CÓDIGOS E COLUNA OCUPANDO TODO O ESPAÇO PARA CRITÉRIOS
+            html += `
+                <div class="print-page page-break-before">
+                    <div class="cabecalho-impresso">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h1 style="font-size: 15px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">
+                                    ${nomeEvento}
+                                </h1>
+                                <div style="font-size: 13px; font-weight: bold; color: #4338ca; margin-top: 1px;">
+                                    MAPA DE CRITÉRIOS DE AVALIAÇÃO — BANCA JULGADORA
+                                </div>
+                                <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+                                    Tabela de referência dos códigos C1 a C5 para lançamento de notas e avaliação dos jurados.
+                                </p>
+                            </div>
+                            <div style="text-align: right; font-size: 10.5px; color: #475569;">
+                                <div><b>Folha de Critérios</b></div>
+                                <div>Página ${totalPaginas} de ${totalPaginas}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; font-size: 10.5px; margin-top: 6px; background-color: #f8fafc; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            <div><b>Jurado(a) / Avaliador(a):</b> ___________________________________________</div>
+                            <div><b>Data:</b> ____ / ____ / ________</div>
+                            <div><b>Categoria(s):</b> ______________________</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabela dos 5 Códigos ocupando todo o espaço -->
+                    <table class="tabela-jurados tabela-criterios" style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 90px; text-align: center; font-size: 11px; background-color: #e2e8f0 !important;">CÓDIGO</th>
+                                <th style="text-align: left; font-size: 11px; background-color: #e2e8f0 !important;">DESCRIÇÃO DO CRITÉRIO DE AVALIAÇÃO / DIRETRIZES / PESO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            const codigosCriterios = [
+                { cod: "C1", descPadrao: criteriosJuradosSalvos.c1 || "" },
+                { cod: "C2", descPadrao: criteriosJuradosSalvos.c2 || "" },
+                { cod: "C3", descPadrao: criteriosJuradosSalvos.c3 || "" },
+                { cod: "C4", descPadrao: criteriosJuradosSalvos.c4 || "" },
+                { cod: "C5", descPadrao: criteriosJuradosSalvos.c5 || "" }
+            ];
+
+            codigosCriterios.forEach(item => {
+                html += `
+                    <tr class="avoid-break" style="height: 70px;">
+                        <td style="text-align: center; vertical-align: middle; font-size: 13px; font-weight: bold; background-color: #f8fafc; color: #1e293b;">
+                            ${item.cod}
+                        </td>
+                        <td style="vertical-align: top; padding: 8px 12px;">
+                            <div style="font-weight: bold; font-size: 11px; color: #0f172a; margin-bottom: 6px;">
+                                ${item.descPadrao ? item.descPadrao : `Critério ${item.cod}: ____________________________________________________________________`}
+                            </div>
+                            <div style="height: 18px; border-bottom: 1px dotted #cbd5e1; margin-top: 6px;"></div>
+                            <div style="height: 18px; border-bottom: 1px dotted #e2e8f0; margin-top: 6px;"></div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+
+                    <!-- Seção de Orientações e Assinatura -->
+                    <div class="avoid-break" style="margin-top: 10px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+                        <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 7px 9px; background-color: #f8fafc; font-size: 9.5px; color: #334155;">
+                            <div style="font-weight: bold; margin-bottom: 3px; text-transform: uppercase; color: #0f172a;">📌 Instruções aos Avaliadores:</div>
+                            <ul style="margin: 0; padding-left: 12px; line-height: 1.35;">
+                                <li>Atribua as notas em cada código (C1 a C5) de acordo com os parâmetros definidos pela banca.</li>
+                                <li>Inscrições com status <i>Em Aberto</i> estão prontas para anotação e julgamento imediato.</li>
+                                <li>Ao concluir a bateria de apresentações, valide a folha e assine abaixo.</li>
+                            </ul>
+                        </div>
+
+                        <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 7px 9px; display: flex; flex-direction: column; justify-content: space-between; font-size: 10px;">
+                            <div style="font-weight: bold; color: #0f172a;">PARECER FINAL / ASSINATURA DA BANCA:</div>
+                            <div style="margin-top: 20px; border-top: 1px solid #0f172a; text-align: center; padding-top: 3px; font-weight: 600;">
+                                Assinatura do(a) Jurado(a) / Presidente da Banca
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
     </script>
+
+    <!-- ÁREA DE IMPRESSÃO DINÂMICA (VISÍVEL APENAS NA IMPRESSÃO) -->
+    <div id="areaImpressaoJurados"></div>
 </body>
 
 </html>

@@ -14,7 +14,11 @@ Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Dr
   - Gera pastas organizadas por **Área do Conhecimento**.
   - Cria planilhas consolidadas divididas em abas por turma.
   - Gera arquivos **CSV** formatados (`Matrícula,Pontos`) prontos para importação no SIGE / sistema escolar.
-- **🖨️ Modo Impressão:** Layout estilizado via `@media print` para emitir relatórios limpos diretamente da interface.
+- **🖨️ Impressão Smart para Jurados:**
+  - Agrupamento automático por **Categoria** com quebras de página individuais.
+  - **5 colunas de critérios/códigos (C1 a C5)** para preenchimento de notas pela banca.
+  - Pontuação inteligente: `EM ABERTO` sai em branco, `REALIZADO` exibe os pontos e `NÃO REALIZADO` exibe 0.
+  - **Folha Separada de Critérios:** Tabela de referência dos 5 códigos com espaço amplo para descrição de diretrizes, pesos e parecer final dos jurados.
 
 ---
 
