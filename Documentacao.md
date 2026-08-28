@@ -11,7 +11,7 @@ O sistema permite que a equipe escolar controle todo o ciclo de vida das inscri�
 - **Painel de Gerenciamento** com filtros rápidos (Turma, Categoria, Busca por Aluno) e suporte a impressão.
 - **Controle de Acesso por Senha** com hash seguro SHA-256 armazenado na planilha.
 - **Formulário de Inscrição Inteligente** com validação em tempo real que bloqueia categorias e disciplinas já utilizadas pelo mesmo aluno.
-- **Geração Automática de Resultados no Google Drive** criando planilhas estruturadas por Turma e arquivos CSV prontos para importação no SIGE / lançamento de notas.
+- **Lançamento Automatizado no Professor Online via Bookmarklet** eliminando planilhas manuais e permitindo injeção direta de notas na tela de digitação do sistema escolar.
 - **Proteção contra Concorrência** via `LockService` para garantir integridade quando múltiplos coordenadores utilizam o sistema simultaneamente.
 
 ---
@@ -75,7 +75,7 @@ Registro das inscrições efetuadas.
 5. **Autenticação e Permissões:**
    - **Gerenciamento:** Visualização e impressão livres. Alteração de pontos, status, edição e exclusão requerem desbloqueio por senha.
    - **Cadastro:** Acesso restrito via senha de edição.
-   - **Resultados & SIGE:** Acesso livre para qualquer usuário quando a célula `H2` da aba `DADOS` estiver como `"SIM"`. Quando estiver como `"NÃO"`, o acesso fica bloqueado para usuários comuns. Para alterar o status de liberação (`SIM`/`NÃO` na célula `H2`), é obrigatório autenticar com a senha.
+   - **Resultados & Lançamento:** Acesso livre para qualquer usuário quando a célula `H2` da aba `DADOS` estiver como `"SIM"`. Quando estiver como `"NÃO"`, o acesso fica bloqueado para usuários comuns. Para alterar o status de liberação (`SIM`/`NÃO` na célula `H2`), é obrigatório autenticar com a senha.
 
 ---
 
@@ -97,7 +97,7 @@ Registro das inscrições efetuadas.
 2. **Aba Cadastro:**
    - Seleção facilitada de Aluno (com filtro prévio por Turma).
    - Seleção de Categoria e Disciplinas com bloqueio visual automático de itens já preenchidos.
-3. **Aba Resultados (Lançamento no SIGE via Bookmarklet):**
+3. **Aba Resultados (Lançamento no Professor Online via Bookmarklet):**
    - Processamento dinâmico de todos os registros com situação `REALIZADO`.
    - **Instalação do Bookmarklet:** Botão arrastável (*drag-and-drop*) para instalação na Barra de Favoritos (<kbd>Ctrl + Shift + B</kbd>) e opção para cópia manual do código.
    - **Lançador por Disciplina e Turma:** Seletor dinâmico de turmas e disciplinas com botão de cópia formatada em JSON padronizado para o clipboard.

@@ -392,10 +392,10 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-200">
                     <div>
                         <h2 class="text-2xl font-extrabold text-indigo-700 flex items-center gap-2">
-                            <span>⚡</span> Resultados & Lançamento no SIGE
+                            <span>⚡</span> Resultados & Lançamento no Professor Online
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                            Injeção direta de notas no SIGE / Professor Online via Bookmarklet inteligente.
+                            Injeção direta de notas no Professor Online via Bookmarklet inteligente.
                         </p>
                     </div>
 
@@ -413,7 +413,7 @@
                     <div>
                         <h3 class="text-lg font-bold text-slate-800">Lançamento de Notas Bloqueado</h3>
                         <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto">
-                            Os resultados ainda não foram liberados pela coordenação para lançamento no SIGE (Célula <strong>H2</strong> da aba <strong>DADOS</strong> está como <strong>NÃO</strong>).
+                            Os resultados ainda não foram liberados pela coordenação para lançamento no Professor Online (Célula <strong>H2</strong> da aba <strong>DADOS</strong> está como <strong>NÃO</strong>).
                         </p>
                     </div>
                     <div class="pt-2">
@@ -434,7 +434,7 @@
                             <h3 class="text-base font-bold text-slate-800">Instalação do Botão no Navegador (Feito 1 única vez)</h3>
                         </div>
                         <p class="text-xs sm:text-sm text-slate-600 mb-3">
-                            Arraste o botão azul abaixo diretamente para a <strong>Barra de Favoritos</strong> do seu navegador. Quando estiver no SIGE, basta clicar nele para preencher as notas!
+                            Arraste o botão azul abaixo diretamente para a <strong>Barra de Favoritos</strong> do seu navegador. Quando estiver no Professor Online, basta clicar nele para preencher as notas!
                         </p>
 
                         <!-- Zona de Arrastar e Soltar (Drag-and-Drop) -->
@@ -474,7 +474,7 @@
                             <h3 class="text-base font-bold text-slate-800">Lançamento de Notas por Disciplina e Turma</h3>
                         </div>
                         <p class="text-xs text-slate-500">
-                            Selecione a disciplina e a turma desejada. Ao clicar em <strong>"Copiar Notas para o SIGE"</strong>, o sistema alimentará a Área de Transferência para o bookmarklet.
+                            Selecione a disciplina e a turma desejada. Ao clicar em <strong>"Copiar Notas para o Professor Online"</strong>, o sistema alimentará a Área de Transferência para o bookmarklet.
                         </p>
 
                         <!-- Filtros Dinâmicos de Disciplina e Turma -->
@@ -508,7 +508,7 @@
                             </div>
                             <button id="btnCopiarNotasSIGE" onclick="copiarNotasSelecionadasParaSIGE()"
                                 class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-sm transform active:scale-95">
-                                📋 Copiar Notas para o SIGE
+                                📋 Copiar Notas para o Professor Online
                             </button>
                         </div>
 
@@ -588,13 +588,13 @@
             nomePastaPlanilhas: "planilhas",
             liberadoResultados: false,
             statusLiberacaoTexto: "NÃO",
-            qtdDisciplinas: 3 
+            qtdDisciplinas: 3
         };
         let mapaAlunos = {};
         const AUTH_STORAGE_KEY = "semana_talentos_auth_token";
 
-        // CÓDIGO MINIFICADO DO BOOKMARKLET UNIVERSAL PARA O SIGE
-        const BOOKMARKLET_URI = `javascript:(function(){const M='sige-notas-bookmarklet-overlay';const e=document.getElementById(M);if(e)e.remove();function S(){if(document.getElementById('sige-notas-styles'))return;const s=document.createElement('style');s.id='sige-notas-styles';s.textContent='@keyframes sigeFadeIn{from{opacity:0;transform:translateY(-15px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes sigePulse{0%{box-shadow:0 0 0 0 rgba(40,167,69,.7)}70%{box-shadow:0 0 0 8px rgba(40,167,69,0)}100%{box-shadow:0 0 0 0 rgba(40,167,69,0)}}.sige-preenchido{border:2px solid #28a745!important;background-color:#f0fff4!important;animation:sigePulse 1.2s ease-out}';document.head.appendChild(s)}function C(d,cb){S();const o=document.createElement('div');o.id=M;o.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,.75);backdrop-filter:blur(4px);z-index:99999999;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif';const c=document.createElement('div');c.style.cssText='background:#fff;width:90%;max-width:460px;border-radius:18px;padding:26px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.35);text-align:center;color:#1e293b;animation:sigeFadeIn .25s ease-out';const q=Object.keys(d.notas||{}).length;const ev=d.evento||'Semana de Talentos';const disc=d.disciplina||'--';const turm=d.turma||'--';c.innerHTML='<div style=\"width:52px;height:52px;background:#e0f2fe;color:#0284c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px\">⚡</div><h3 style=\"margin:0 0 6px;font-size:18px;font-weight:800;color:#0f172a\">Confirmar Lançamento de Notas</h3><p style=\"margin:0 0 16px;font-size:14px;color:#334155;line-height:1.4\">Deseja inserir as notas de <strong>&quot;'+ev+'&quot;</strong> para a turma <strong>&quot;'+turm+'&quot;</strong>?</p><div style=\"background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:18px;text-align:left;font-size:13px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Evento:</span><strong style=\"color:#0f172a\">'+ev+'</strong></div><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Turma:</span><strong style=\"color:#0f172a\">'+turm+'</strong></div><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Disciplina:</span><strong style=\"color:#0284c7\">'+disc+'</strong></div><div style=\"display:flex;justify-content:space-between\"><span style=\"color:#64748b\">Total de alunos a pontuar:</span><strong style=\"color:#16a34a\">'+q+' notas</strong></div></div><div style=\"display:flex;gap:10px\"><button id=\"s-cancel\" style=\"flex:1;padding:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-weight:600;border-radius:10px;cursor:pointer;font-size:13px\">Cancelar</button><button id=\"s-ins\" style=\"flex:1.5;padding:11px;border:none;background:#0284c7;color:#fff;font-weight:700;border-radius:10px;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(2,132,199,0.4)\">✓ Sim, Inserir Notas</button></div>';o.appendChild(c);document.body.appendChild(o);document.getElementById('s-cancel').onclick=()=>o.remove();document.getElementById('s-ins').onclick=()=>{o.remove();cb()}}function P(d){const n=d.notas||{};const campos=document.querySelectorAll('input[data-nota]');if(!campos.length){alert('⚠️ Nenhum campo de nota encontrado na tela atual do SIGE. Verifique se está na tela de digitação de notas.');return}let p=0;campos.forEach(c=>{const card=c.closest('.div-card')||c.closest('tr')||c.closest('.card-aluno');if(!card)return;const sub=card.querySelector('[data-item-subtitle]')||card.querySelector('.matricula,[data-matricula]')||card.querySelector('.aluno-matricula');if(!sub)return;const id=sub.innerText.trim();const val=n[id];if(val!==undefined&&val!==null&&val!==''){c.value=String(val).trim().replace(',','.');c.dispatchEvent(new Event('input',{bubbles:true}));c.dispatchEvent(new Event('change',{bubbles:true}));c.dispatchEvent(new Event('blur',{bubbles:true}));c.classList.add('sige-preenchido');p++}});alert('✅ Sucesso! '+p+' notas foram preenchidas no SIGE para a turma '+(d.turma||'')+'!')}function parse(t){let d;try{d=JSON.parse(t)}catch(e){const l=t.split('\\n'),map={};l.forEach(x=>{const p=x.split(/[\\t,;]/);if(p.length>=2&&p[0].trim()&&p[1].trim())map[p[0].trim()]=p[1].trim()});if(Object.keys(map).length)d={app:'SIGE_NOTAS_AUTO',evento:'Semana de Talentos',turma:'Turma',disciplina:'Notas',notas:map}}if(!d||!d.notas||!Object.keys(d.notas).length){alert('❌ Nenhuma nota válida encontrada no Clipboard. Copie as notas no WebApp primeiro.');return}C(d,()=>P(d))}if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(t=>{if(!t)t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)}).catch(()=>{const t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)})}else{const t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)}})();`;
+        // CÓDIGO MINIFICADO DO BOOKMARKLET UNIVERSAL PARA O PROFESSOR ONLINE
+        const BOOKMARKLET_URI = `javascript:(function(){const M='sige-notas-bookmarklet-overlay';const e=document.getElementById(M);if(e)e.remove();function S(){if(document.getElementById('sige-notas-styles'))return;const s=document.createElement('style');s.id='sige-notas-styles';s.textContent='@keyframes sigeFadeIn{from{opacity:0;transform:translateY(-15px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes sigePulse{0%{box-shadow:0 0 0 0 rgba(40,167,69,.7)}70%{box-shadow:0 0 0 8px rgba(40,167,69,0)}100%{box-shadow:0 0 0 0 rgba(40,167,69,0)}}.sige-preenchido{border:2px solid #28a745!important;background-color:#f0fff4!important;animation:sigePulse 1.2s ease-out}';document.head.appendChild(s)}function C(d,cb){S();const o=document.createElement('div');o.id=M;o.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,.75);backdrop-filter:blur(4px);z-index:99999999;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif';const c=document.createElement('div');c.style.cssText='background:#fff;width:90%;max-width:460px;border-radius:18px;padding:26px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.35);text-align:center;color:#1e293b;animation:sigeFadeIn .25s ease-out';const q=Object.keys(d.notas||{}).length;const ev=d.evento||'Semana de Talentos';const disc=d.disciplina||'--';const turm=d.turma||'--';c.innerHTML='<div style=\"width:52px;height:52px;background:#e0f2fe;color:#0284c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px\">⚡</div><h3 style=\"margin:0 0 6px;font-size:18px;font-weight:800;color:#0f172a\">Confirmar Lançamento de Notas</h3><p style=\"margin:0 0 16px;font-size:14px;color:#334155;line-height:1.4\">Deseja inserir as notas de <strong>&quot;'+ev+'&quot;</strong> para a turma <strong>&quot;'+turm+'&quot;</strong>?</p><div style=\"background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:18px;text-align:left;font-size:13px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Evento:</span><strong style=\"color:#0f172a\">'+ev+'</strong></div><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Turma:</span><strong style=\"color:#0f172a\">'+turm+'</strong></div><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Disciplina:</span><strong style=\"color:#0284c7\">'+disc+'</strong></div><div style=\"display:flex;justify-content:space-between\"><span style=\"color:#64748b\">Total de alunos a pontuar:</span><strong style=\"color:#16a34a\">'+q+' notas</strong></div></div><div style=\"display:flex;gap:10px\"><button id=\"s-cancel\" style=\"flex:1;padding:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-weight:600;border-radius:10px;cursor:pointer;font-size:13px\">Cancelar</button><button id=\"s-ins\" style=\"flex:1.5;padding:11px;border:none;background:#0284c7;color:#fff;font-weight:700;border-radius:10px;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(2,132,199,0.4)\">✓ Sim, Inserir Notas</button></div>';o.appendChild(c);document.body.appendChild(o);document.getElementById('s-cancel').onclick=()=>o.remove();document.getElementById('s-ins').onclick=()=>{o.remove();cb()}}function P(d){const n=d.notas||{};const campos=document.querySelectorAll('input[data-nota]');if(!campos.length){alert('⚠️ Nenhum campo de nota encontrado na tela atual do Professor Online. Verifique se está na tela de digitação de notas.');return}let p=0;campos.forEach(c=>{const card=c.closest('.div-card')||c.closest('tr')||c.closest('.card-aluno');if(!card)return;const sub=card.querySelector('[data-item-subtitle]')||card.querySelector('.matricula,[data-matricula]')||card.querySelector('.aluno-matricula');if(!sub)return;const id=sub.innerText.trim();const val=n[id];if(val!==undefined&&val!==null&&val!==''){c.value=String(val).trim().replace(',','.');c.dispatchEvent(new Event('input',{bubbles:true}));c.dispatchEvent(new Event('change',{bubbles:true}));c.dispatchEvent(new Event('blur',{bubbles:true}));c.classList.add('sige-preenchido');p++}});alert('✅ Sucesso! '+p+' notas foram preenchidas no Professor Online para a turma '+(d.turma||'')+'!')}function parse(t){let d;try{d=JSON.parse(t)}catch(e){const l=t.split('\\n'),map={};l.forEach(x=>{const p=x.split(/[\\t,;]/);if(p.length>=2&&p[0].trim()&&p[1].trim())map[p[0].trim()]=p[1].trim()});if(Object.keys(map).length)d={app:'SIGE_NOTAS_AUTO',evento:'Semana de Talentos',turma:'Turma',disciplina:'Notas',notas:map}}if(!d||!d.notas||!Object.keys(d.notas).length){alert('❌ Nenhuma nota válida encontrada no Clipboard. Copie as notas no WebApp primeiro.');return}C(d,()=>P(d))}if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(t=>{if(!t)t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)}).catch(()=>{const t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)})}else{const t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)}})();`;
 
         // =================================================================================
         // GERENCIAMENTO DE SESSÃO / AUTENTICAÇÃO
@@ -705,7 +705,7 @@
                             🟢 Lançamento Liberado (H2: SIM)
                         </span>
                         ${autenticado ? `
-                            <button onclick="confirmarAlterarLiberacao(false)" title="Bloquear lançamento de notas no SIGE (Gravar NÃO em H2)"
+                            <button onclick="confirmarAlterarLiberacao(false)" title="Bloquear lançamento de notas no Professor Online (Gravar NÃO em H2)"
                                 class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 text-xs font-bold px-2.5 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1">
                                 🔒 Bloquear Acesso
                             </button>
@@ -720,7 +720,7 @@
                             🔒 Lançamento Bloqueado (H2: NÃO)
                         </span>
                         ${autenticado ? `
-                            <button onclick="confirmarAlterarLiberacao(true)" title="Liberar lançamento de notas no SIGE (Gravar SIM em H2)"
+                            <button onclick="confirmarAlterarLiberacao(true)" title="Liberar lançamento de notas no Professor Online (Gravar SIM em H2)"
                                 class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1">
                                 🔓 Liberar para Professores (SIM)
                             </button>
@@ -1461,7 +1461,7 @@
         }
 
         // =================================================================================
-        // BOOKMARKLET E LANÇAMENTO DE NOTAS NO SIGE (ABA RESULTADOS)
+        // BOOKMARKLET E LANÇAMENTO DE NOTAS NO PROFESSOR ONLINE (ABA RESULTADOS)
         // =================================================================================
 
         function inicializarBookmarklet() {
@@ -1483,11 +1483,11 @@
                         title: '⚡ Como instalar o botão:',
                         html: `
                             <div class="text-left text-sm space-y-3">
-                                <p class="text-slate-700">Para usar o Bookmarklet <b>"${nomeCompletoBotao}"</b> no <b>SIGE / Professor Online</b>:</p>
+                                <p class="text-slate-700">Para usar o Bookmarklet <b>"${nomeCompletoBotao}"</b> no <b>Professor Online</b>:</p>
                                 <ol class="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
                                     <li>Clique e <b>ARRASTE</b> o botão azul para a sua <b>Barra de Favoritos</b> no topo do navegador.</li>
                                     <li>Se a barra de favoritos não estiver visível, pressione <kbd class="bg-slate-200 px-1.5 py-0.5 rounded font-mono font-bold">Ctrl + Shift + B</kbd> no teclado.</li>
-                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no SIGE e <b>clique no favorito "${nomeCompletoBotao}"</b> instalado!</li>
+                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no Professor Online e <b>clique no favorito "${nomeCompletoBotao}"</b> instalado!</li>
                                 </ol>
                             </div>
                         `,
@@ -1845,7 +1845,7 @@
                             <p>• <b>Total de Notas a Lançar:</b> <span class="text-emerald-700 font-bold">${alunos.length} notas</span></p>
                         </div>
                         <p class="text-slate-500 text-xs">
-                            Ao confirmar, os dados serão copiados para a Área de Transferência e ficarão prontos para o Bookmarklet no SIGE.
+                            Ao confirmar, os dados serão copiados para a Área de Transferência e ficarão prontos para o Bookmarklet no Professor Online.
                         </p>
                     </div>
                 `,
@@ -1904,16 +1904,16 @@
                         </div>
 
                         <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-700 space-y-1.5">
-                            <p class="font-bold text-slate-900 uppercase">👉 Próximo Passo no SIGE:</p>
+                            <p class="font-bold text-slate-900 uppercase">👉 Próximo Passo no Professor Online:</p>
                             <ol class="list-decimal pl-4 space-y-1">
-                                <li>Abra a aba do <b>SIGE / Professor Online</b> na tela de digitação de notas desta turma.</li>
+                                <li>Abra a aba do <b>Professor Online</b> na tela de digitação de notas desta turma.</li>
                                 <li>Clique no seu favorito <b>"⭐ ${nomeFavorito}"</b> na barra superior.</li>
-                                <li>Confirme no modal do SIGE para preencher os campos automaticamente!</li>
+                                <li>Confirme no modal do Professor Online para preencher os campos automaticamente!</li>
                             </ol>
                         </div>
                     </div>
                 `,
-                confirmButtonText: 'Entendido, ir para o SIGE',
+                confirmButtonText: 'Entendido, ir para o Professor Online',
                 confirmButtonColor: '#0284c7'
             });
         }

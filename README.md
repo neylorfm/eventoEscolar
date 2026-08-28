@@ -1,6 +1,6 @@
 # 📚 Sistema de Controle - Semana de Talentos (Evento Escolar)
 
-Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Drive** desenvolvido para o gerenciamento centralizado de inscrições, atribuição de notas/pontos, controle de situações e lançamento automatizado de notas no **SIGE / Professor Online** via **Bookmarklet JavaScript**.
+Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Drive** desenvolvido para o gerenciamento centralizado de inscrições, atribuição de notas/pontos, controle de situações e lançamento automatizado de notas no **Professor Online** via **Bookmarklet JavaScript**.
 
 ---
 
@@ -8,8 +8,8 @@ Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Dr
 
 - **📊 Gestão em Tempo Real:** Relatório completo com filtros rápidos por Turma, Categoria e Busca por Nome/Matrícula.
 - **🔒 Segurança e Autenticação:** Modo de visualização público para consulta e modo de edição protegido por senha com hash **SHA-256**.
-- **⚡ Injeção de Notas no SIGE via Bookmarklet:**
-  - Substituição de planilhas CSV manuais por injeção automatizada e segura client-side diretamente na tela de notas do SIGE.
+- **⚡ Injeção de Notas no Professor Online via Bookmarklet:**
+  - Substituição de planilhas CSV manuais por injeção automatizada e segura client-side diretamente na tela de notas do Professor Online.
   - Botão arrastável (*drag-and-drop*) para instalação instantânea na Barra de Favoritos.
   - Janela de confirmação detalhada para evitar lançamentos incorretos em turmas erradas.
 - **🔓 Controle de Liberação de Resultados (Célula H2 de DADOS):**
