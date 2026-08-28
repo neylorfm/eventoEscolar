@@ -448,7 +448,7 @@
                                draggable="true" 
                                class="bookmarklet-draggable" 
                                title="Clique e arraste para a Barra de Favoritos do seu Navegador">
-                                📑 ⭐ Lançar Notas SIGE <span class="drag-pill">↔ Arrastar</span>
+                                <span id="labelNomeBotaoBookmarklet">⭐ Semana de Talentos - Lançar Notas</span> <span class="drag-pill">↔ Arrastar</span>
                             </a>
 
                             <div class="mt-2 text-xs text-sky-700 flex items-center justify-center gap-1.5 flex-wrap">
@@ -1466,19 +1466,28 @@
 
         function inicializarBookmarklet() {
             const btnDrag = document.getElementById('btn-drag-bookmarklet');
+            const labelBtn = document.getElementById('labelNomeBotaoBookmarklet');
+            const nomeEvento = BD.nomeEvento || "Semana de Talentos";
+            const nomeCompletoBotao = `${nomeEvento} - Lançar Notas`;
+
+            if (labelBtn) {
+                labelBtn.innerHTML = `⭐ ${nomeCompletoBotao}`;
+            }
+
             if (btnDrag) {
                 btnDrag.href = BOOKMARKLET_URI;
+                btnDrag.title = `Arraste "${nomeCompletoBotao}" para a Barra de Favoritos`;
                 btnDrag.addEventListener('click', (e) => {
                     e.preventDefault();
                     Swal.fire({
                         title: '⚡ Como instalar o botão:',
                         html: `
                             <div class="text-left text-sm space-y-3">
-                                <p class="text-slate-700">Para usar o Bookmarklet no <b>SIGE / Professor Online</b>:</p>
+                                <p class="text-slate-700">Para usar o Bookmarklet <b>"${nomeCompletoBotao}"</b> no <b>SIGE / Professor Online</b>:</p>
                                 <ol class="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
                                     <li>Clique e <b>ARRASTE</b> o botão azul para a sua <b>Barra de Favoritos</b> no topo do navegador.</li>
                                     <li>Se a barra de favoritos não estiver visível, pressione <kbd class="bg-slate-200 px-1.5 py-0.5 rounded font-mono font-bold">Ctrl + Shift + B</kbd> no teclado.</li>
-                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no SIGE e <b>clique no favorito</b> instalado!</li>
+                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no SIGE e <b>clique no favorito "${nomeCompletoBotao}"</b> instalado!</li>
                                 </ol>
                             </div>
                         `,
@@ -1881,6 +1890,7 @@
         }
 
         function exibirFeedbackCopiaSucesso(evento, disciplina, turma, total) {
+            const nomeFavorito = `${evento} - Lançar Notas`;
             Swal.fire({
                 icon: 'success',
                 title: '📋 Notas Copiadas com Sucesso!',
@@ -1897,7 +1907,7 @@
                             <p class="font-bold text-slate-900 uppercase">👉 Próximo Passo no SIGE:</p>
                             <ol class="list-decimal pl-4 space-y-1">
                                 <li>Abra a aba do <b>SIGE / Professor Online</b> na tela de digitação de notas desta turma.</li>
-                                <li>Clique no seu favorito <b>"📑 ⭐ Lançar Notas SIGE"</b> na barra superior.</li>
+                                <li>Clique no seu favorito <b>"⭐ ${nomeFavorito}"</b> na barra superior.</li>
                                 <li>Confirme no modal do SIGE para preencher os campos automaticamente!</li>
                             </ol>
                         </div>
