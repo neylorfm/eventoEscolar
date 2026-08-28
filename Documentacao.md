@@ -38,7 +38,7 @@ Responsável pela segurança e configurações básicas.
   - *Dica:* Para resetar a senha para o padrão (`1234567890`), basta deixar a célula `A2` vazia.
 
 ### 2. Aba `DADOS`
-Base de alunos, categorias, disciplinas e áreas de conhecimento.
+Base de alunos, categorias, disciplinas, áreas de conhecimento e liberação de resultados.
 - **`A (ROLLNO)`**: Matrícula do aluno.
 - **`B (CLASS)`**: Turma / Série (ex: `1ºA`, `2ºB`).
 - **`C (NAME)`**: Nome completo do aluno.
@@ -46,6 +46,9 @@ Base de alunos, categorias, disciplinas e áreas de conhecimento.
 - **`E (CATEGORIAS)`**: Lista de modalidades disponíveis (ex: Produção Literária, Artes Visuais, Dança, The Voice, Lipsync, Audiovisual, Batalha de Rimas).
 - **`F (DISCIPLINAS)`**: Lista de disciplinas (ex: Química, Física, Biologia, Artes, Matemática, Filosofia, etc.).
 - **`G (AREA)`**: Área de conhecimento correspondente à disciplina (ex: `NATUREZA`, `LINGUAGENS`, `MATEMATICA`, `HUMANAS`, `OUTRA`).
+- **`H (LIBERADO PARA LANCAMENTO DE NOTAS)`**:
+  - **`H1`**: Rótulo `"LIBERADO PARA LANCAMENTO DE NOTAS"`.
+  - **`H2`**: `"SIM"` ou `"NÃO"`. Controla a visibilidade dos resultados para os professores. Quando `"SIM"`, os professores podem acessar a aba Resultados sem senha. Para alterar entre `"SIM"` e `"NÃO"`, é necessário autenticar com senha.
 
 ### 3. Aba `CADASTRO`
 Registro das inscrições efetuadas.
@@ -69,9 +72,10 @@ Registro das inscrições efetuadas.
    - Registros marcados como `REALIZADO` ou `NAO REALIZADO` ficam bloqueados para evitar alterações acidentais após a execução da atividade.
 4. **Controle de Concorrência:**
    - Operações de escrita usam `LockService.getScriptLock()` com limite de 15 segundos (`TEMPO_ESPERA_BLOQUEIO_MS`) e `SpreadsheetApp.flush()`.
-5. **Autenticação:**
-   - Usuários não autenticados têm acesso apenas de **leitura** (visualizar tabela, filtrar e imprimir).
-   - Para cadastrar, alterar pontuação inline, mudar status, editar, excluir ou gerar arquivos no Drive, é necessário desbloquear com a senha.
+5. **Autenticação e Permissões:**
+   - **Gerenciamento:** Visualização e impressão livres. Alteração de pontos, status, edição e exclusão requerem desbloqueio por senha.
+   - **Cadastro:** Acesso restrito via senha de edição.
+   - **Resultados & SIGE:** Acesso livre para qualquer usuário quando a célula `H2` da aba `DADOS` estiver como `"SIM"`. Quando estiver como `"NÃO"`, o acesso fica bloqueado para usuários comuns. Para alterar o status de liberação (`SIM`/`NÃO` na célula `H2`), é obrigatório autenticar com a senha.
 
 ---
 
@@ -93,11 +97,12 @@ Registro das inscrições efetuadas.
 2. **Aba Cadastro:**
    - Seleção facilitada de Aluno (com filtro prévio por Turma).
    - Seleção de Categoria e Disciplinas com bloqueio visual automático de itens já preenchidos.
-3. **Aba Resultados:**
-   - Processamento de todos os registros com situação `REALIZADO`.
-   - Gera no Google Drive:
-     - **Planilhas (`planilhas/<Area>/<Disciplina>(SUFIXO)`):** Planilhas organizadas com abas por turma, contendo colunas Matrícula, Nome do Aluno e Pontos.
-     - **Arquivos CSV (`csv/<Area>/<Turma>_<Disciplina>(SUFIXO).csv`):** Arquivos prontos no formato `Matrícula,Pontos` para importação direta no SIGE.
+3. **Aba Resultados (Lançamento no SIGE via Bookmarklet):**
+   - Processamento dinâmico de todos os registros com situação `REALIZADO`.
+   - **Instalação do Bookmarklet:** Botão arrastável (*drag-and-drop*) para instalação na Barra de Favoritos (<kbd>Ctrl + Shift + B</kbd>) e opção para cópia manual do código.
+   - **Lançador por Disciplina e Turma:** Seletor dinâmico de turmas e disciplinas com botão de cópia formatada em JSON padronizado para o clipboard.
+   - **Janela de Confirmação:** Janela de confirmação detalhando `"Deseja inserir as notas do [Evento] para a turma [Turma] ([Disciplina])?"` antes do preenchimento.
+   - **Backup Opcional no Google Drive:** Geração de planilhas consolidadas no Drive para coordenação/administradores.
 
 ---
 

@@ -7,3 +7,6 @@ Thumbs.db
 # Arquivos temporários e logs
 *.log
 scratch/
+
+# Documentação interna para IAs e novos projetos
+DOCUMENTACAO_SIGE_BOOKMARKLET_IA.md

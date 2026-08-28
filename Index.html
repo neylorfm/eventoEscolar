@@ -168,6 +168,52 @@
             }
         }
 
+        /* Estilos do Bookmarklet SIGE Arrastável */
+        .bookmarklet-drag-zone {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 2px dashed #38bdf8;
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            margin: 16px 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .bookmarklet-draggable {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+            cursor: grab;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .bookmarklet-draggable:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+        }
+
+        .bookmarklet-draggable:active {
+            cursor: grabbing;
+        }
+
+        .drag-pill {
+            background: rgba(255, 255, 255, 0.25);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -340,31 +386,190 @@
 
         <!-- ==================== ABA 3: RESULTADOS ==================== -->
         <div id="resultados" class="tab-content">
-            <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto text-center">
-                <h2 class="text-2xl font-bold mb-4 text-indigo-700">Gerar Resultados</h2>
-                <div class="bg-slate-50 border p-4 rounded-md text-left text-sm text-gray-600 mb-6 shadow-inner">
-                    <p class="mb-2">Gera as ramificações configuradas (<span id="labelPlanilhas"
-                            class="font-mono text-xs bg-gray-200 px-1 rounded"></span> e <span id="labelCsv"
-                            class="font-mono text-xs bg-gray-200 px-1 rounded"></span>) divididas por Área para status
-                        <strong>REALIZADO</strong>.
-                    </p>
-                    <ul class="list-disc pl-5 mt-2 space-y-1">
-                        <li>Os arquivos serão separados por <strong>Área</strong>.</li>
-                        <li><strong>Planilhas:</strong> Contendo Matrícula, Nome e Pontuação, divididas em abas.</li>
-                        <li><strong>Arquivos CSV:</strong> Contendo a Matrícula e a pontuação real atualizada do aluno.
-                        </li>
-                        <li>O sufixo configurado será adicionado aos nomes automaticamente.</li>
-                    </ul>
+            <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
+
+                <!-- 1. Cabeçalho e Status de Liberação (Célula H2 da aba DADOS) -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-indigo-700 flex items-center gap-2">
+                            <span>⚡</span> Resultados & Lançamento no SIGE
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                            Injeção direta de notas no SIGE / Professor Online via Bookmarklet inteligente.
+                        </p>
+                    </div>
+
+                    <!-- Indicador de Status da Célula H2 da aba DADOS -->
+                    <div id="statusLiberacaoBadgeContainer" class="flex items-center gap-2">
+                        <!-- Injetado dinamicamente via JS -->
+                    </div>
                 </div>
-                <div class="mb-6 text-left">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ID da Pasta Base no Google Drive</label>
-                    <input type="text" id="folderId"
-                        class="w-full border-gray-300 rounded-md border p-2 focus:ring-indigo-500">
+
+                <!-- 2. Tela de Bloqueio (Quando H2 = NÃO e usuário NÃO autenticado) -->
+                <div id="telaBloqueioResultados" class="hidden py-12 px-6 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl max-w-xl mx-auto space-y-4">
+                    <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                        🔒
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Lançamento de Notas Bloqueado</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto">
+                            Os resultados ainda não foram liberados pela coordenação para lançamento no SIGE (Célula <strong>H2</strong> da aba <strong>DADOS</strong> está como <strong>NÃO</strong>).
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button onclick="abrirModalLogin(() => { carregarDados(); changeTab('resultados'); })"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition text-sm flex items-center gap-2 mx-auto">
+                            🔑 Desbloquear com Senha (Coordenação)
+                        </button>
+                    </div>
                 </div>
-                <button id="btnGerar" onclick="solicitarGeracaoPlanilhas(false)"
-                    class="w-full bg-emerald-600 text-white py-3 px-4 rounded-md hover:bg-emerald-700 font-bold shadow-lg transition duration-200">
-                    ⚙️ Gerar Arquivos no Drive
-                </button>
+
+                <!-- 3. Painel Ativo de Resultados e Bookmarklet (Quando H2 = SIM ou usuário autenticado) -->
+                <div id="painelAtivoResultados" class="space-y-6">
+
+                    <!-- PASSO 1: Instalação do Bookmarklet no Navegador -->
+                    <div class="bg-gradient-to-r from-sky-50 via-indigo-50 to-blue-50 border border-sky-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-sky-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">Passo 1</span>
+                            <h3 class="text-base font-bold text-slate-800">Instalação do Botão no Navegador (Feito 1 única vez)</h3>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-600 mb-3">
+                            Arraste o botão azul abaixo diretamente para a <strong>Barra de Favoritos</strong> do seu navegador. Quando estiver no SIGE, basta clicar nele para preencher as notas!
+                        </p>
+
+                        <!-- Zona de Arrastar e Soltar (Drag-and-Drop) -->
+                        <div class="bookmarklet-drag-zone">
+                            <p class="text-sky-900 font-semibold text-xs sm:text-sm mb-2">
+                                👇 <strong>Clique e arraste este botão</strong> para a barra superior do navegador:
+                            </p>
+                            
+                            <a id="btn-drag-bookmarklet" 
+                               href="#" 
+                               draggable="true" 
+                               class="bookmarklet-draggable" 
+                               title="Clique e arraste para a Barra de Favoritos do seu Navegador">
+                                📑 ⭐ Lançar Notas SIGE <span class="drag-pill">↔ Arrastar</span>
+                            </a>
+
+                            <div class="mt-2 text-xs text-sky-700 flex items-center justify-center gap-1.5 flex-wrap">
+                                <span>💡 Barra de favoritos oculta? Pressione</span>
+                                <kbd class="bg-white border border-sky-300 text-sky-900 px-1.5 py-0.5 rounded font-mono font-bold shadow-xs">Ctrl + Shift + B</kbd>
+                                <span>no teclado.</span>
+                            </div>
+                        </div>
+
+                        <!-- Fallback manual / celular -->
+                        <div class="flex justify-center mt-2">
+                            <button onclick="copiarCodigoBookmarklet()" 
+                                class="text-xs text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-md font-medium transition shadow-xs flex items-center gap-1.5">
+                                📋 Copiar Código do Bookmarklet (Para adicionar manualmente ou no celular)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 2: Seleção de Turma, Disciplina e Cópia das Notas -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">Passo 2</span>
+                            <h3 class="text-base font-bold text-slate-800">Lançamento de Notas por Disciplina e Turma</h3>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            Selecione a disciplina e a turma desejada. Ao clicar em <strong>"Copiar Notas para o SIGE"</strong>, o sistema alimentará a Área de Transferência para o bookmarklet.
+                        </p>
+
+                        <!-- Filtros Dinâmicos de Disciplina e Turma -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Escolha a Disciplina:</label>
+                                <select id="resFiltroDisciplina" class="w-full border rounded-lg p-2.5 text-sm bg-white font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-xs" onchange="aoMudarDisciplinaResultados()">
+                                    <option value="">Carregando disciplinas...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Escolha a Turma:</label>
+                                <select id="resFiltroTurma" class="w-full border rounded-lg p-2.5 text-sm bg-white font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-xs" onchange="renderTabelaResultados()">
+                                    <option value="">Todas as turmas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Card de Ação Principal: Total de Notas + Botão Copiar -->
+                        <div id="cardAcaoCopiarNotas" class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-bold text-indigo-800 uppercase tracking-wide">Turma Selecionada para Lançamento</div>
+                                <div class="text-lg font-extrabold text-indigo-950 mt-0.5 flex items-center gap-2">
+                                    <span id="labelResDisciplina">—</span>
+                                    <span class="text-indigo-400">/</span>
+                                    <span id="labelResTurma" class="text-indigo-600">—</span>
+                                </div>
+                                <div class="text-xs text-indigo-700 mt-1">
+                                    Total de alunos com nota: <strong id="labelResTotalAlunos" class="text-emerald-700 font-extrabold">0 notas</strong>
+                                </div>
+                            </div>
+                            <button id="btnCopiarNotasSIGE" onclick="copiarNotasSelecionadasParaSIGE()"
+                                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-sm transform active:scale-95">
+                                📋 Copiar Notas para o SIGE
+                            </button>
+                        </div>
+
+                        <!-- Tabela de Alunos com Pontuação nesta Disciplina/Turma -->
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                            <table class="min-w-full divide-y divide-slate-200 text-left text-xs sm:text-sm">
+                                <thead class="bg-slate-50 text-slate-600 font-semibold uppercase text-xs">
+                                    <tr>
+                                        <th class="px-3 py-3 w-12 text-center">Nº</th>
+                                        <th class="px-3 py-3">Turma</th>
+                                        <th class="px-3 py-3">Matrícula</th>
+                                        <th class="px-3 py-3">Nome do Aluno</th>
+                                        <th class="px-3 py-3">Categoria(s) de Origem</th>
+                                        <th class="px-3 py-3 text-center w-24">Pontuação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyResultadosAlunos" class="divide-y divide-slate-100 bg-white">
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-8 text-center text-slate-400">
+                                            Selecione uma disciplina para visualizar os alunos pontuados.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Grade de Acesso Rápido por Turmas da Disciplina -->
+                        <div id="containerCardsTurmas" class="pt-2">
+                            <h4 class="text-xs font-bold text-slate-600 uppercase mb-2">Visão Rápida por Turmas da Disciplina:</h4>
+                            <div id="gridCardsTurmas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                <!-- Cards injetados via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO OPCIONAL (ADMIN): Backup de Planilha no Google Drive -->
+                    <div id="secaoBackupDriveAdmin" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 space-y-3">
+                        <details class="cursor-pointer">
+                            <summary class="font-bold text-slate-700 hover:text-indigo-600 transition flex items-center justify-between">
+                                <span>📁 Opções Avançadas: Gerar Backup de Planilhas no Google Drive</span>
+                                <span class="text-slate-400 text-xs font-normal">Clique para expandir</span>
+                            </summary>
+                            <div class="mt-3 pt-3 border-t border-slate-200 space-y-3">
+                                <p>
+                                    Caso deseje arquivar cópias das planilhas divididas por disciplina e abas por turma no Google Drive:
+                                </p>
+                                <div class="max-w-md">
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">ID da Pasta Base no Google Drive:</label>
+                                    <input type="text" id="folderId" placeholder="Deixe em branco para pasta padrão..."
+                                        class="w-full border-gray-300 rounded-md border p-2 text-xs focus:ring-indigo-500">
+                                </div>
+                                <button onclick="solicitarGeracaoPlanilhas(false)"
+                                    class="bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition text-xs flex items-center gap-1.5">
+                                    💾 Gerar Backup de Planilhas no Drive
+                                </button>
+                            </div>
+                        </details>
+                    </div>
+
+                </div>
+
             </div>
         </div>
     </div>
@@ -373,9 +578,23 @@
         // =================================================================================
         // ESTADO GLOBAL DO SISTEMA
         // =================================================================================
-        let BD = { alunos: [], categorias: [], disciplinas: [], cadastros: [], folderIdPadrao: "", qtdDisciplinas: 3 };
+        let BD = { 
+            alunos: [], 
+            categorias: [], 
+            disciplinas: [], 
+            cadastros: [], 
+            folderIdPadrao: "", 
+            nomeEvento: "Semana de Talentos",
+            nomePastaPlanilhas: "planilhas",
+            liberadoResultados: false,
+            statusLiberacaoTexto: "NÃO",
+            qtdDisciplinas: 3 
+        };
         let mapaAlunos = {};
         const AUTH_STORAGE_KEY = "semana_talentos_auth_token";
+
+        // CÓDIGO MINIFICADO DO BOOKMARKLET UNIVERSAL PARA O SIGE
+        const BOOKMARKLET_URI = `javascript:(function(){const M='sige-notas-bookmarklet-overlay';const e=document.getElementById(M);if(e)e.remove();function S(){if(document.getElementById('sige-notas-styles'))return;const s=document.createElement('style');s.id='sige-notas-styles';s.textContent='@keyframes sigeFadeIn{from{opacity:0;transform:translateY(-15px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes sigePulse{0%{box-shadow:0 0 0 0 rgba(40,167,69,.7)}70%{box-shadow:0 0 0 8px rgba(40,167,69,0)}100%{box-shadow:0 0 0 0 rgba(40,167,69,0)}}.sige-preenchido{border:2px solid #28a745!important;background-color:#f0fff4!important;animation:sigePulse 1.2s ease-out}';document.head.appendChild(s)}function C(d,cb){S();const o=document.createElement('div');o.id=M;o.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,.75);backdrop-filter:blur(4px);z-index:99999999;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif';const c=document.createElement('div');c.style.cssText='background:#fff;width:90%;max-width:460px;border-radius:18px;padding:26px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.35);text-align:center;color:#1e293b;animation:sigeFadeIn .25s ease-out';const q=Object.keys(d.notas||{}).length;const ev=d.evento||'Semana de Talentos';const disc=d.disciplina||'--';const turm=d.turma||'--';c.innerHTML='<div style=\"width:52px;height:52px;background:#e0f2fe;color:#0284c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px\">⚡</div><h3 style=\"margin:0 0 6px;font-size:18px;font-weight:800;color:#0f172a\">Confirmar Lançamento de Notas</h3><p style=\"margin:0 0 16px;font-size:14px;color:#334155;line-height:1.4\">Deseja inserir as notas de <strong>&quot;'+ev+'&quot;</strong> para a turma <strong>&quot;'+turm+'&quot;</strong>?</p><div style=\"background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:18px;text-align:left;font-size:13px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Evento:</span><strong style=\"color:#0f172a\">'+ev+'</strong></div><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Turma:</span><strong style=\"color:#0f172a\">'+turm+'</strong></div><div style=\"display:flex;justify-content:space-between;margin-bottom:6px\"><span style=\"color:#64748b\">Disciplina:</span><strong style=\"color:#0284c7\">'+disc+'</strong></div><div style=\"display:flex;justify-content:space-between\"><span style=\"color:#64748b\">Total de alunos a pontuar:</span><strong style=\"color:#16a34a\">'+q+' notas</strong></div></div><div style=\"display:flex;gap:10px\"><button id=\"s-cancel\" style=\"flex:1;padding:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-weight:600;border-radius:10px;cursor:pointer;font-size:13px\">Cancelar</button><button id=\"s-ins\" style=\"flex:1.5;padding:11px;border:none;background:#0284c7;color:#fff;font-weight:700;border-radius:10px;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(2,132,199,0.4)\">✓ Sim, Inserir Notas</button></div>';o.appendChild(c);document.body.appendChild(o);document.getElementById('s-cancel').onclick=()=>o.remove();document.getElementById('s-ins').onclick=()=>{o.remove();cb()}}function P(d){const n=d.notas||{};const campos=document.querySelectorAll('input[data-nota]');if(!campos.length){alert('⚠️ Nenhum campo de nota encontrado na tela atual do SIGE. Verifique se está na tela de digitação de notas.');return}let p=0;campos.forEach(c=>{const card=c.closest('.div-card')||c.closest('tr')||c.closest('.card-aluno');if(!card)return;const sub=card.querySelector('[data-item-subtitle]')||card.querySelector('.matricula,[data-matricula]')||card.querySelector('.aluno-matricula');if(!sub)return;const id=sub.innerText.trim();const val=n[id];if(val!==undefined&&val!==null&&val!==''){c.value=String(val).trim().replace(',','.');c.dispatchEvent(new Event('input',{bubbles:true}));c.dispatchEvent(new Event('change',{bubbles:true}));c.dispatchEvent(new Event('blur',{bubbles:true}));c.classList.add('sige-preenchido');p++}});alert('✅ Sucesso! '+p+' notas foram preenchidas no SIGE para a turma '+(d.turma||'')+'!')}function parse(t){let d;try{d=JSON.parse(t)}catch(e){const l=t.split('\\n'),map={};l.forEach(x=>{const p=x.split(/[\\t,;]/);if(p.length>=2&&p[0].trim()&&p[1].trim())map[p[0].trim()]=p[1].trim()});if(Object.keys(map).length)d={app:'SIGE_NOTAS_AUTO',evento:'Semana de Talentos',turma:'Turma',disciplina:'Notas',notas:map}}if(!d||!d.notas||!Object.keys(d.notas).length){alert('❌ Nenhuma nota válida encontrada no Clipboard. Copie as notas no WebApp primeiro.');return}C(d,()=>P(d))}if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(t=>{if(!t)t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)}).catch(()=>{const t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)})}else{const t=prompt('Cole as notas copiadas do WebApp aqui:');if(t)parse(t)}})();`;
 
         // =================================================================================
         // GERENCIAMENTO DE SESSÃO / AUTENTICAÇÃO
@@ -402,12 +621,37 @@
             const bannerModoLeitura = document.getElementById('bannerModoLeitura');
             const lockCadastro = document.getElementById('lock-badge-cadastro');
             const lockResultados = document.getElementById('lock-badge-resultados');
+            const secaoBackupAdmin = document.getElementById('secaoBackupDriveAdmin');
+
+            // Cadeado de Cadastro (Exige login para editar/cadastrar)
+            if (lockCadastro) {
+                if (autenticado) lockCadastro.classList.add('hidden');
+                else lockCadastro.classList.remove('hidden');
+            }
+
+            // Cadeado de Resultados: Oculta se estiver liberado OU se estiver autenticado
+            if (lockResultados) {
+                if (autenticado || BD.liberadoResultados) {
+                    lockResultados.classList.add('hidden');
+                } else {
+                    lockResultados.classList.remove('hidden');
+                }
+            }
+
+            if (bannerModoLeitura) {
+                if (autenticado) bannerModoLeitura.classList.add('hidden');
+                else bannerModoLeitura.classList.remove('hidden');
+            }
+
+            if (secaoBackupAdmin) {
+                if (autenticado) secaoBackupAdmin.classList.remove('hidden');
+                else secaoBackupAdmin.classList.add('hidden');
+            }
+
+            // Atualiza indicador da célula H2 na aba Resultados
+            atualizarBadgeStatusLiberacao();
 
             if (autenticado) {
-                if (lockCadastro) lockCadastro.classList.add('hidden');
-                if (lockResultados) lockResultados.classList.add('hidden');
-                if (bannerModoLeitura) bannerModoLeitura.classList.add('hidden');
-
                 authContainer.innerHTML = `
                     <div class="flex items-center gap-1.5 sm:gap-2">
                         <span class="bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-emerald-400/40">
@@ -425,10 +669,6 @@
                     </div>
                 `;
             } else {
-                if (lockCadastro) lockCadastro.classList.remove('hidden');
-                if (lockResultados) lockResultados.classList.remove('hidden');
-                if (bannerModoLeitura) bannerModoLeitura.classList.remove('hidden');
-
                 authContainer.innerHTML = `
                     <button onclick="abrirModalLogin()" 
                         class="bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold py-1.5 px-3 rounded-md shadow-md flex items-center gap-1.5 transition transform active:scale-95">
@@ -441,6 +681,52 @@
             const tabGerenciamento = document.getElementById('gerenciamento');
             if (tabGerenciamento && tabGerenciamento.classList.contains('active')) {
                 renderTabela();
+            }
+
+            // Atualiza a aba resultados se estiver visível
+            const tabResultados = document.getElementById('resultados');
+            if (tabResultados && tabResultados.classList.contains('active')) {
+                renderResultados();
+            }
+        }
+
+        function atualizarBadgeStatusLiberacao() {
+            const container = document.getElementById('statusLiberacaoBadgeContainer');
+            if (!container) return;
+
+            const liberado = BD.liberadoResultados;
+            const autenticado = isAutenticado();
+
+            if (liberado) {
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            🟢 Lançamento Liberado (H2: SIM)
+                        </span>
+                        ${autenticado ? `
+                            <button onclick="confirmarAlterarLiberacao(false)" title="Bloquear lançamento de notas no SIGE (Gravar NÃO em H2)"
+                                class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 text-xs font-bold px-2.5 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1">
+                                🔒 Bloquear Acesso
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            🔒 Lançamento Bloqueado (H2: NÃO)
+                        </span>
+                        ${autenticado ? `
+                            <button onclick="confirmarAlterarLiberacao(true)" title="Liberar lançamento de notas no SIGE (Gravar SIM em H2)"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1">
+                                🔓 Liberar para Professores (SIM)
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
             }
         }
 
@@ -598,14 +884,15 @@
         };
 
         function changeTab(tabName) {
-            // Se tentar acessar abas de edição sem estar autenticado, solicita senha
-            if ((tabName === 'cadastro' || tabName === 'resultados') && !isAutenticado()) {
+            // Se tentar acessar a aba de cadastro sem estar autenticado, solicita senha
+            if (tabName === 'cadastro' && !isAutenticado()) {
                 abrirModalLogin(() => {
                     executarMudancaAba(tabName);
                 });
                 return;
             }
 
+            // Para Resultados: se H2 = SIM, acessa direto! Se H2 = NÃO e não-autenticado, mostra tela de bloqueio
             executarMudancaAba(tabName);
         }
 
@@ -627,6 +914,8 @@
 
             if (tabName === 'gerenciamento' || tabName === 'cadastro') {
                 carregarCadastros();
+            } else if (tabName === 'resultados') {
+                renderResultados();
             }
         }
 
@@ -648,9 +937,9 @@
 
                 document.getElementById('pageTitle').innerText = res.nomeEvento;
                 document.getElementById('navTituloEvento').innerText = res.nomeEvento;
-                document.getElementById('labelPlanilhas').innerText = res.nomePastaPlanilhas;
-                document.getElementById('labelCsv').innerText = res.nomePastaCsv;
-                if (BD.folderIdPadrao) document.getElementById('folderId').value = BD.folderIdPadrao;
+                if (BD.folderIdPadrao && document.getElementById('folderId')) {
+                    document.getElementById('folderId').value = BD.folderIdPadrao;
+                }
 
                 const turmasSet = new Set();
                 BD.alunos.forEach(a => { mapaAlunos[a.matricula] = a; turmasSet.add(a.turma); });
@@ -670,6 +959,8 @@
 
                 gerarCamposDisciplinas(BD.qtdDisciplinas);
                 atualizarSelectAlunos();
+                inicializarBookmarklet();
+                atualizarUIAutenticacao();
                 carregarCadastros();
             }).withFailureHandler(err => {
                 Swal.fire('Erro', 'Falha ao carregar dados: ' + err.message, 'error');
@@ -1170,7 +1461,455 @@
         }
 
         // =================================================================================
-        // GERAÇÃO DE RESULTADOS
+        // BOOKMARKLET E LANÇAMENTO DE NOTAS NO SIGE (ABA RESULTADOS)
+        // =================================================================================
+
+        function inicializarBookmarklet() {
+            const btnDrag = document.getElementById('btn-drag-bookmarklet');
+            if (btnDrag) {
+                btnDrag.href = BOOKMARKLET_URI;
+                btnDrag.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: '⚡ Como instalar o botão:',
+                        html: `
+                            <div class="text-left text-sm space-y-3">
+                                <p class="text-slate-700">Para usar o Bookmarklet no <b>SIGE / Professor Online</b>:</p>
+                                <ol class="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
+                                    <li>Clique e <b>ARRASTE</b> o botão azul para a sua <b>Barra de Favoritos</b> no topo do navegador.</li>
+                                    <li>Se a barra de favoritos não estiver visível, pressione <kbd class="bg-slate-200 px-1.5 py-0.5 rounded font-mono font-bold">Ctrl + Shift + B</kbd> no teclado.</li>
+                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no SIGE e <b>clique no favorito</b> instalado!</li>
+                                </ol>
+                            </div>
+                        `,
+                        icon: 'info',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#0284c7'
+                    });
+                });
+            }
+        }
+
+        function copiarCodigoBookmarklet() {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(BOOKMARKLET_URI).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Código Copiado!',
+                        html: '<p class="text-xs text-slate-600">O código JavaScript do Bookmarklet foi copiado para a Área de Transferência. No seu navegador, crie um novo favorito e cole este código no campo de <b>URL</b>.</p>',
+                        confirmButtonColor: '#0284c7'
+                    });
+                }).catch(() => {
+                    prompt('Copie o código do Bookmarklet abaixo:', BOOKMARKLET_URI);
+                });
+            } else {
+                prompt('Copie o código do Bookmarklet abaixo:', BOOKMARKLET_URI);
+            }
+        }
+
+        function confirmarAlterarLiberacao(liberar) {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => confirmarAlterarLiberacao(liberar));
+                return;
+            }
+
+            const acaoTexto = liberar ? "LIBERAR" : "BLOQUEAR";
+            const statusNovo = liberar ? "SIM" : "NÃO";
+            const msg = liberar
+                ? `Deseja LIBERAR o lançamento de notas para os professores? (Será gravado <b>'SIM'</b> na célula <b>H2 da aba DADOS</b>).`
+                : `Deseja BLOQUEAR o acesso dos professores ao lançamento? (Será gravado <b>'NÃO'</b> na célula <b>H2 da aba DADOS</b>).`;
+
+            Swal.fire({
+                title: `${acaoTexto} Lançamento de Notas?`,
+                html: `<p class="text-sm text-slate-700">${msg}</p>`,
+                icon: liberar ? 'question' : 'warning',
+                showCancelButton: true,
+                confirmButtonText: `Sim, ${acaoTexto}`,
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: liberar ? '#16a34a' : '#e11d48',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(res => resolve({ ok: true, data: res }))
+                            .withFailureHandler(err => resolve({ ok: false, erro: err.message || 'Erro ao atualizar célula H2.' }))
+                            .setLiberacaoResultados(statusNovo, getToken());
+                    }).then(result => {
+                        if (!result.ok) {
+                            Swal.showValidationMessage(result.erro);
+                            return false;
+                        }
+                        return result.data;
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value && result.value.sucesso) {
+                    BD.liberadoResultados = result.value.liberado;
+                    BD.statusLiberacaoTexto = result.value.statusTexto;
+                    atualizarUIAutenticacao();
+                    renderResultados();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Atualizado com Sucesso!',
+                        text: `Status alterado para '${result.value.statusTexto}' na célula H2 da aba DADOS.`,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        // Estrutura em memória dos alunos com situação REALIZADO agrupados por Disciplina e Turma
+        let dadosEstruturadosResultados = {};
+
+        function compilarDadosResultados() {
+            const dadosPorDisciplina = {};
+            const realizados = BD.cadastros.filter(c => c.situacao === "REALIZADO");
+
+            realizados.forEach(c => {
+                const aluno = mapaAlunos[c.matricula];
+                if (!aluno) return;
+
+                c.disciplinas.forEach(disc => {
+                    if (!disc) return;
+                    if (!dadosPorDisciplina[disc]) {
+                        dadosPorDisciplina[disc] = {
+                            turmas: {}
+                        };
+                    }
+                    if (!dadosPorDisciplina[disc].turmas[aluno.turma]) {
+                        dadosPorDisciplina[disc].turmas[aluno.turma] = [];
+                    }
+
+                    let existente = dadosPorDisciplina[disc].turmas[aluno.turma].find(a => a.matricula === aluno.matricula);
+                    if (existente) {
+                        existente.pontos += Number(c.pontos || 0);
+                        if (!existente.categorias.includes(c.categoria)) existente.categorias.push(c.categoria);
+                    } else {
+                        dadosPorDisciplina[disc].turmas[aluno.turma].push({
+                            matricula: aluno.matricula,
+                            nome: aluno.nome,
+                            turma: aluno.turma,
+                            pontos: Number(c.pontos || 0),
+                            categorias: [c.categoria]
+                        });
+                    }
+                });
+            });
+
+            dadosEstruturadosResultados = dadosPorDisciplina;
+            return dadosPorDisciplina;
+        }
+
+        function renderResultados() {
+            const telaBloqueio = document.getElementById('telaBloqueioResultados');
+            const painelAtivo = document.getElementById('painelAtivoResultados');
+            const liberado = BD.liberadoResultados;
+            const autenticado = isAutenticado();
+
+            atualizarBadgeStatusLiberacao();
+
+            if (!liberado && !autenticado) {
+                if (telaBloqueio) telaBloqueio.classList.remove('hidden');
+                if (painelAtivo) painelAtivo.classList.add('hidden');
+                return;
+            }
+
+            if (telaBloqueio) telaBloqueio.classList.add('hidden');
+            if (painelAtivo) painelAtivo.classList.remove('hidden');
+
+            const dados = compilarDadosResultados();
+            const selectDisc = document.getElementById('resFiltroDisciplina');
+            if (!selectDisc) return;
+
+            const discAnterior = selectDisc.value;
+            const listaDisciplinas = Object.keys(dados).sort();
+
+            selectDisc.innerHTML = '';
+            if (listaDisciplinas.length === 0) {
+                selectDisc.innerHTML = '<option value="">Nenhum cadastro REALIZADO encontrado</option>';
+                const selectTurma = document.getElementById('resFiltroTurma');
+                if (selectTurma) selectTurma.innerHTML = '<option value="">—</option>';
+                renderTabelaResultados();
+                return;
+            }
+
+            listaDisciplinas.forEach(disc => {
+                let totalAlunosDisc = 0;
+                Object.values(dados[disc].turmas).forEach(arr => totalAlunosDisc += arr.length);
+                selectDisc.add(new Option(`${disc} (${totalAlunosDisc} notas)`, disc));
+            });
+
+            if (discAnterior && listaDisciplinas.includes(discAnterior)) {
+                selectDisc.value = discAnterior;
+            } else {
+                selectDisc.value = listaDisciplinas[0];
+            }
+
+            aoMudarDisciplinaResultados();
+        }
+
+        function aoMudarDisciplinaResultados() {
+            const selectDisc = document.getElementById('resFiltroDisciplina');
+            const selectTurma = document.getElementById('resFiltroTurma');
+            if (!selectDisc || !selectTurma) return;
+
+            const disc = selectDisc.value;
+            const turmaAnterior = selectTurma.value;
+
+            selectTurma.innerHTML = '';
+            if (!disc || !dadosEstruturadosResultados[disc]) {
+                selectTurma.innerHTML = '<option value="">Todas as turmas</option>';
+                renderTabelaResultados();
+                return;
+            }
+
+            const turmas = Object.keys(dadosEstruturadosResultados[disc].turmas).sort();
+            selectTurma.add(new Option('Todas as turmas', ''));
+            turmas.forEach(t => {
+                const qtd = dadosEstruturadosResultados[disc].turmas[t].length;
+                selectTurma.add(new Option(`${t} (${qtd} notas)`, t));
+            });
+
+            if (turmaAnterior && turmas.includes(turmaAnterior)) {
+                selectTurma.value = turmaAnterior;
+            }
+
+            renderTabelaResultados();
+        }
+
+        function renderTabelaResultados() {
+            const selectDisc = document.getElementById('resFiltroDisciplina');
+            const selectTurma = document.getElementById('resFiltroTurma');
+            const disc = selectDisc ? selectDisc.value : '';
+            const turma = selectTurma ? selectTurma.value : '';
+            const tbody = document.getElementById('tbodyResultadosAlunos');
+            const gridCards = document.getElementById('gridCardsTurmas');
+            const labelDisc = document.getElementById('labelResDisciplina');
+            const labelTurma = document.getElementById('labelResTurma');
+            const labelTotal = document.getElementById('labelResTotalAlunos');
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (gridCards) gridCards.innerHTML = '';
+
+            if (!disc || !dadosEstruturadosResultados[disc]) {
+                if (labelDisc) labelDisc.innerText = '—';
+                if (labelTurma) labelTurma.innerText = '—';
+                if (labelTotal) labelTotal.innerText = '0 notas';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-slate-400">
+                            Nenhum aluno com situação REALIZADO encontrado.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            if (labelDisc) labelDisc.innerText = disc;
+            if (labelTurma) labelTurma.innerText = turma ? turma : 'Todas as Turmas';
+
+            const turmasObj = dadosEstruturadosResultados[disc].turmas;
+            let alunosExibir = [];
+
+            if (turma) {
+                alunosExibir = (turmasObj[turma] || []).slice();
+            } else {
+                Object.keys(turmasObj).sort().forEach(t => {
+                    alunosExibir.push(...turmasObj[t]);
+                });
+            }
+
+            alunosExibir.sort((a, b) => {
+                if (a.turma !== b.turma) return a.turma.localeCompare(b.turma);
+                return a.nome.localeCompare(b.nome);
+            });
+
+            if (labelTotal) labelTotal.innerText = `${alunosExibir.length} notas`;
+
+            if (alunosExibir.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-slate-400">
+                            Nenhum aluno nesta seleção.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                alunosExibir.forEach((a, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+                    tr.innerHTML = `
+                        <td class="px-3 py-2.5 text-center text-slate-500 font-bold">${idx + 1}</td>
+                        <td class="px-3 py-2.5 whitespace-nowrap font-semibold text-slate-700">${a.turma}</td>
+                        <td class="px-3 py-2.5 whitespace-nowrap font-mono text-xs text-indigo-700 font-bold">${a.matricula}</td>
+                        <td class="px-3 py-2.5 font-medium text-slate-900">${a.nome}</td>
+                        <td class="px-3 py-2.5 text-xs text-slate-500">${a.categorias.join(', ')}</td>
+                        <td class="px-3 py-2.5 text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                +${a.pontos} pt
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Preenche cards rápidos por turma
+            if (gridCards) {
+                const todasTurmas = Object.keys(turmasObj).sort();
+                todasTurmas.forEach(tNome => {
+                    const listaAlunosTurma = turmasObj[tNome];
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between gap-3 transition shadow-xs';
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-extrabold text-indigo-900 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md">${tNome}</span>
+                                <span class="text-xs font-bold text-emerald-700">${listaAlunosTurma.length} alunos</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-2 font-medium truncate">${disc}</p>
+                        </div>
+                        <button onclick="copiarNotasTurmaCard('${disc}', '${tNome}')"
+                            class="w-full bg-white hover:bg-indigo-600 hover:text-white text-indigo-700 border border-indigo-300 font-bold text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs">
+                            📋 Copiar ${tNome}
+                        </button>
+                    `;
+                    gridCards.appendChild(card);
+                });
+            }
+        }
+
+        function copiarNotasSelecionadasParaSIGE() {
+            const selectDisc = document.getElementById('resFiltroDisciplina');
+            const selectTurma = document.getElementById('resFiltroTurma');
+            const disc = selectDisc ? selectDisc.value : '';
+            const turma = selectTurma ? selectTurma.value : '';
+            copiarNotasSIGE(disc, turma);
+        }
+
+        function copiarNotasTurmaCard(disc, turma) {
+            copiarNotasSIGE(disc, turma);
+        }
+
+        function copiarNotasSIGE(disciplina, turmaFiltro) {
+            if (!disciplina || !dadosEstruturadosResultados[disciplina]) {
+                Swal.fire('Atenção', 'Selecione uma disciplina com notas válidas.', 'warning');
+                return;
+            }
+
+            const turmasObj = dadosEstruturadosResultados[disciplina].turmas;
+            let alunos = [];
+            let nomeTurmaPayload = "";
+
+            if (turmaFiltro) {
+                alunos = (turmasObj[turmaFiltro] || []).slice();
+                nomeTurmaPayload = turmaFiltro;
+            } else {
+                // Se selecionou 'Todas as turmas', agrupa tudo
+                Object.keys(turmasObj).forEach(t => alunos.push(...turmasObj[t]));
+                nomeTurmaPayload = "Todas as Turmas";
+            }
+
+            if (alunos.length === 0) {
+                Swal.fire('Atenção', 'Nenhum aluno com nota encontrado nesta seleção.', 'warning');
+                return;
+            }
+
+            const nomeEvento = BD.nomeEvento || "Semana de Talentos";
+
+            // Janela de Confirmação Clara e Explícita:
+            // "Deseja inserir as notas do 'NOME DO EVENTO' para 'NOME DA TURMA'?"
+            Swal.fire({
+                title: 'Confirmar Cópia de Notas',
+                html: `
+                    <div class="text-left text-sm space-y-3 mt-2">
+                        <p class="text-base text-slate-800 font-semibold">
+                            Deseja inserir as notas do <b>"${nomeEvento}"</b> para a turma <b>"${nomeTurmaPayload}"</b>?
+                        </p>
+                        <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl text-xs text-indigo-950 space-y-1">
+                            <p>• <b>Evento:</b> ${nomeEvento}</p>
+                            <p>• <b>Disciplina:</b> ${disciplina}</p>
+                            <p>• <b>Turma:</b> ${nomeTurmaPayload}</p>
+                            <p>• <b>Total de Notas a Lançar:</b> <span class="text-emerald-700 font-bold">${alunos.length} notas</span></p>
+                        </div>
+                        <p class="text-slate-500 text-xs">
+                            Ao confirmar, os dados serão copiados para a Área de Transferência e ficarão prontos para o Bookmarklet no SIGE.
+                        </p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '📋 Sim, Copiar Notas',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#0284c7',
+                cancelButtonColor: '#64748b'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                // Monta o mapa de notas com matrícula -> pontos formatados
+                const notasMap = {};
+                alunos.forEach(a => {
+                    const notaFormatada = Number(a.pontos).toFixed(1).replace(/\.0$/, '');
+                    notasMap[a.matricula] = notaFormatada;
+                });
+
+                // Payload estruturado oficial conforme DOCUMENTACAO_SIGE_BOOKMARKLET_IA.md
+                const payload = {
+                    app: "SIGE_NOTAS_AUTO",
+                    evento: nomeEvento,
+                    turma: nomeTurmaPayload,
+                    disciplina: disciplina,
+                    totalAlunos: alunos.length,
+                    notas: notasMap
+                };
+
+                const jsonString = JSON.stringify(payload, null, 2);
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(jsonString).then(() => {
+                        exibirFeedbackCopiaSucesso(nomeEvento, disciplina, nomeTurmaPayload, alunos.length);
+                    }).catch(() => {
+                        prompt('Copie o payload JSON abaixo:', jsonString);
+                    });
+                } else {
+                    prompt('Copie o payload JSON abaixo:', jsonString);
+                }
+            });
+        }
+
+        function exibirFeedbackCopiaSucesso(evento, disciplina, turma, total) {
+            Swal.fire({
+                icon: 'success',
+                title: '📋 Notas Copiadas com Sucesso!',
+                html: `
+                    <div class="text-left text-sm space-y-3 mt-2">
+                        <div class="bg-emerald-50 border border-emerald-300 p-3.5 rounded-xl text-emerald-950 text-xs space-y-1">
+                            <p>• <b>Evento:</b> ${evento}</p>
+                            <p>• <b>Disciplina:</b> ${disciplina}</p>
+                            <p>• <b>Turma:</b> ${turma}</p>
+                            <p>• <b>Total de Alunos:</b> <span class="font-extrabold text-emerald-800">${total} notas</span></p>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-700 space-y-1.5">
+                            <p class="font-bold text-slate-900 uppercase">👉 Próximo Passo no SIGE:</p>
+                            <ol class="list-decimal pl-4 space-y-1">
+                                <li>Abra a aba do <b>SIGE / Professor Online</b> na tela de digitação de notas desta turma.</li>
+                                <li>Clique no seu favorito <b>"📑 ⭐ Lançar Notas SIGE"</b> na barra superior.</li>
+                                <li>Confirme no modal do SIGE para preencher os campos automaticamente!</li>
+                            </ol>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Entendido, ir para o SIGE',
+                confirmButtonColor: '#0284c7'
+            });
+        }
+
+        // =================================================================================
+        // BACKUP DE PLANILHAS NO GOOGLE DRIVE (OPCIONAL / ADMIN)
         // =================================================================================
         function solicitarGeracaoPlanilhas(substituirConfirma = false) {
             if (!isAutenticado()) {
@@ -1200,7 +1939,7 @@
                             if (result.isConfirmed) solicitarGeracaoPlanilhas(true);
                         });
                     } else if (res.sucesso) {
-                        Swal.fire('Pronto!', 'Resultados gerados com sucesso no Google Drive.', 'success');
+                        Swal.fire('Pronto!', 'Planilhas de backup geradas com sucesso no Google Drive.', 'success');
                     }
                 })
                 .withFailureHandler(err => {

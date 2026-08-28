@@ -5,7 +5,6 @@ const FOLDER_ID_PADRAO = "";
 const NOME_EVENTO = "Semana de Talentos"; 
 const PONTOS_PADRAO = 1;                 
 const NOME_PASTA_PLANILHAS = "planilhas"; 
-const NOME_PASTA_CSV = "csv";             
 const SUFIXO_ARQUIVOS = "SEMANA-TALENTOS-2026";
 
 // NOVA VARIÁVEL: Quantidade de disciplinas que o aluno deve escolher por categoria
@@ -143,6 +142,57 @@ function alterarSenha(tokenAtual, novaSenha) {
 }
 
 // =================================================================================
+// CONTROLE DE LIBERAÇÃO DE RESULTADOS (CÉLULA H2 DA ABA DADOS)
+// =================================================================================
+
+/**
+ * Altera o status de liberação do lançamento de notas na célula H2 da aba DADOS.
+ * Requer autenticação por senha (token válido).
+ */
+function setLiberacaoResultados(liberar, token) {
+  validarAcesso(token);
+  
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(TEMPO_ESPERA_BLOQUEIO_MS)) {
+    throw new Error("Sistema ocupado, tente novamente.");
+  }
+  
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let abaDados = ss.getSheetByName("DADOS");
+    if (!abaDados) throw new Error("Aba DADOS não encontrada na planilha.");
+    
+    // Assegura cabeçalho em H1 se estiver vazio
+    const cabecalhoH1 = String(abaDados.getRange("H1").getValue() || "").trim();
+    if (!cabecalhoH1) {
+      abaDados.getRange("H1").setValue("LIBERADO PARA LANCAMENTO DE NOTAS");
+      abaDados.getRange("H1").setFontWeight("bold");
+    }
+    
+    const novoStatus = liberar === true || liberar === "SIM" ? "SIM" : "NÃO";
+    const rangeH2 = abaDados.getRange("H2");
+    rangeH2.setValue(novoStatus);
+    rangeH2.setFontWeight("bold");
+    
+    if (novoStatus === "SIM") {
+      rangeH2.setBackground("#dcfce7").setFontColor("#15803d"); // Verde
+    } else {
+      rangeH2.setBackground("#fee2e2").setFontColor("#b91c1c"); // Vermelho
+    }
+    
+    SpreadsheetApp.flush();
+    
+    return { 
+      sucesso: true, 
+      liberado: (novoStatus === "SIM"),
+      statusTexto: novoStatus 
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// =================================================================================
 // FUNÇÕES DE LEITURA (PÚBLICAS PARA VISUALIZAÇÃO)
 // =================================================================================
 
@@ -166,6 +216,15 @@ function getDadosIniciais() {
     if (dados[i][4]) categorias.push(String(dados[i][4]).trim());
     if (dados[i][5]) disciplinas.push(String(dados[i][5]).trim());
   }
+
+  // Leitura do status de liberação da célula H2
+  let valorH2 = "";
+  try {
+    valorH2 = String(abaDados.getRange("H2").getValue() || "").trim().toUpperCase();
+  } catch(e) {
+    valorH2 = "NÃO";
+  }
+  const liberadoResultados = (valorH2 === "SIM" || valorH2 === "S" || valorH2 === "TRUE");
   
   return {
     alunos: alunos,
@@ -174,7 +233,8 @@ function getDadosIniciais() {
     folderIdPadrao: FOLDER_ID_PADRAO,
     nomeEvento: NOME_EVENTO,
     nomePastaPlanilhas: NOME_PASTA_PLANILHAS,
-    nomePastaCsv: NOME_PASTA_CSV,
+    liberadoResultados: liberadoResultados,
+    statusLiberacaoTexto: liberadoResultados ? "SIM" : "NÃO",
     qtdDisciplinas: QTD_DISCIPLINAS
   };
 }
@@ -530,11 +590,6 @@ function gerarPlanilhasResultados(folderIdInput, substituir, token) {
   if(iterP.hasNext()) folderPlanilhas = iterP.next();
   else folderPlanilhas = folder.createFolder(NOME_PASTA_PLANILHAS);
 
-  let folderCsv;
-  let iterC = folder.getFoldersByName(NOME_PASTA_CSV);
-  if(iterC.hasNext()) folderCsv = iterC.next();
-  else folderCsv = folder.createFolder(NOME_PASTA_CSV);
-
   if (!substituir) {
     let arquivosExistentes = [];
     disciplinasParaCriar.forEach(disc => {
@@ -552,7 +607,6 @@ function gerarPlanilhasResultados(folderIdInput, substituir, token) {
   }
 
   let cachePastasPlanilhas = {};
-  let cachePastasCsv = {};
 
   disciplinasParaCriar.forEach(disc => {
     let area = dadosPorDisciplina[disc].area;
@@ -564,13 +618,6 @@ function gerarPlanilhasResultados(folderIdInput, substituir, token) {
       else cachePastasPlanilhas[area] = folderPlanilhas.createFolder(area);
     }
     let areaFolderPlanilha = cachePastasPlanilhas[area];
-
-    if(!cachePastasCsv[area]) {
-      let fs = folderCsv.getFoldersByName(area);
-      if(fs.hasNext()) cachePastasCsv[area] = fs.next();
-      else cachePastasCsv[area] = folderCsv.createFolder(area);
-    }
-    let areaFolderCsv = cachePastasCsv[area];
 
     let iteratorPlanilha = areaFolderPlanilha.getFilesByName(nomeFinalPlanilha);
     while (iteratorPlanilha.hasNext()) iteratorPlanilha.next().setTrashed(true);
@@ -590,14 +637,6 @@ function gerarPlanilhasResultados(folderIdInput, substituir, token) {
       
       if (valores.length > 0) aba.getRange(2, 1, valores.length, 3).setValues(valores);
       aba.autoResizeColumns(1, 3);
-
-      let nomeFinalCsv = `${turma}_${disc}${sufixoFormatado}.csv`;
-      let csvIterator = areaFolderCsv.getFilesByName(nomeFinalCsv);
-      while(csvIterator.hasNext()) csvIterator.next().setTrashed(true);
-
-      let csvContent = "";
-      alunos.forEach(a => { csvContent += `${a.matricula},${a.pontos}\r\n`; });
-      areaFolderCsv.createFile(nomeFinalCsv, csvContent, MimeType.CSV);
     });
     
     const abaPadrao = novaPlanilha.getSheetByName("Página1") || novaPlanilha.getSheetByName("Sheet1");

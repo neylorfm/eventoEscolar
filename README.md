@@ -1,6 +1,6 @@
 # 📚 Sistema de Controle - Semana de Talentos (Evento Escolar)
 
-Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Drive** desenvolvido para o gerenciamento centralizado de inscrições, atribuição de notas/pontos, controle de situações e geração automática de planilhas e arquivos CSV para eventos escolares e culturais.
+Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Drive** desenvolvido para o gerenciamento centralizado de inscrições, atribuição de notas/pontos, controle de situações e lançamento automatizado de notas no **SIGE / Professor Online** via **Bookmarklet JavaScript**.
 
 ---
 
@@ -8,12 +8,15 @@ Sistema web integrado ao **Google Apps Script**, **Google Sheets** e **Google Dr
 
 - **📊 Gestão em Tempo Real:** Relatório completo com filtros rápidos por Turma, Categoria e Busca por Nome/Matrícula.
 - **🔒 Segurança e Autenticação:** Modo de visualização público para consulta e modo de edição protegido por senha com hash **SHA-256**.
+- **⚡ Injeção de Notas no SIGE via Bookmarklet:**
+  - Substituição de planilhas CSV manuais por injeção automatizada e segura client-side diretamente na tela de notas do SIGE.
+  - Botão arrastável (*drag-and-drop*) para instalação instantânea na Barra de Favoritos.
+  - Janela de confirmação detalhada para evitar lançamentos incorretos em turmas erradas.
+- **🔓 Controle de Liberação de Resultados (Célula H2 de DADOS):**
+  - Acesso público e direto para lançamento de notas quando liberado pela coordenação (`H2 = SIM`).
+  - Bloqueio automático quando `H2 = NÃO`, exigindo senha administrativa para liberação.
 - **🎯 Validação Inteligente:** O sistema impede que um aluno se inscreva mais de uma vez na mesma categoria ou repita disciplinas já selecionadas.
 - **⚡ Controle de Concorrência:** Proteção contra escritas simultâneas usando o `LockService` do Google Apps Script.
-- **📁 Exportação Automática para o Drive:**
-  - Gera pastas organizadas por **Área do Conhecimento**.
-  - Cria planilhas consolidadas divididas em abas por turma.
-  - Gera arquivos **CSV** formatados (`Matrícula,Pontos`) prontos para importação no SIGE / sistema escolar.
 - **🖨️ Impressão Smart para Jurados:**
   - Agrupamento automático por **Categoria** com quebras de página individuais.
   - **5 colunas de critérios/códigos (C1 a C5)** para preenchimento de notas pela banca.
