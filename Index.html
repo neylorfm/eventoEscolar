@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title id="pageTitle">Controle de Evento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media print {
+
+            nav,
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            #tabelaRelatorio {
+                box-shadow: none;
+            }
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <nav class="bg-indigo-600 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between flex-wrap gap-3">
+            <div class="text-white font-bold text-lg sm:text-xl tracking-wide flex items-center gap-2">
+                <span id="navTituloEvento">Carregando...</span>
+            </div>
+
+            <!-- Abas Centrais -->
+            <div class="flex items-center space-x-1 sm:space-x-2">
+                <button onclick="changeTab('gerenciamento')" id="tab-gerenciamento"
+                    class="text-white bg-indigo-700 hover:bg-indigo-500 px-3 py-2 rounded-md font-semibold text-sm transition">
+                    Gerenciamento
+                </button>
+                <button onclick="changeTab('cadastro')" id="tab-cadastro"
+                    class="text-indigo-100 hover:bg-indigo-500 px-3 py-2 rounded-md font-semibold text-sm transition flex items-center gap-1">
+                    <span id="lock-badge-cadastro">🔒</span> Cadastro
+                </button>
+                <button onclick="changeTab('resultados')" id="tab-resultados"
+                    class="text-indigo-100 hover:bg-indigo-500 px-3 py-2 rounded-md font-semibold text-sm transition flex items-center gap-1">
+                    <span id="lock-badge-resultados">🔒</span> Resultados
+                </button>
+            </div>
+
+            <!-- Área de Autenticação / Status -->
+            <div id="authContainer" class="flex items-center">
+                <!-- Injetado dinamicamente via JS -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 mt-2">
+
+        <!-- ==================== ABA 1: GERENCIAMENTO (PADRÃO / VISUALIZAÇÃO) ==================== -->
+        <div id="gerenciamento" class="tab-content active">
+            <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+                <!-- Banner de Modo Leitura quando não autenticado -->
+                <div id="bannerModoLeitura"
+                    class="mb-4 bg-amber-50 border-l-4 border-amber-400 p-3 sm:p-4 rounded-r-md text-amber-800 text-sm flex items-center justify-between gap-3 no-print">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <span class="text-2xl">👁️</span>
+                        <div>
+                            <span class="font-bold">Modo de Visualização Ativo:</span>
+                            <span class="text-amber-700 block sm:inline">Você pode consultar o relatório. Para alterar
+                                Pontos, Situação, editar ou excluir inscrições, desbloqueie a edição.</span>
+                        </div>
+                    </div>
+                    <button onclick="abrirModalLogin()"
+                        class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 text-xs rounded shadow transition whitespace-nowrap">
+                        🔑 Desbloquear
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center mb-6 no-print flex-wrap gap-3">
+                    <h2 class="text-2xl font-bold text-indigo-700">Relatório e Situação</h2>
+                    <button onclick="window.print()"
+                        class="bg-slate-600 text-white py-2 px-4 rounded-md hover:bg-slate-700 flex items-center gap-2 text-sm font-semibold transition">
+                        🖨️ Imprimir
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 no-print bg-slate-50 p-4 rounded-md border">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 uppercase">Filtro: Turma</label>
+                        <select id="filtroTurma" class="mt-1 w-full border rounded p-2 text-sm bg-white"
+                            onchange="renderTabela()">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 uppercase">Filtro: Categoria</label>
+                        <select id="filtroCategoria" class="mt-1 w-full border rounded p-2 text-sm bg-white"
+                            onchange="renderTabela()">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-gray-500 uppercase">Busca: Aluno</label>
+                        <input type="text" id="filtroBusca" placeholder="Nome ou matrícula..."
+                            class="mt-1 w-full border rounded p-2 text-sm bg-white" onkeyup="renderTabela()">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="tabelaRelatorio">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Turma</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Matrícula
+                                </th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoria
+                                </th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disciplinas
+                                </th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pontos</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Situação
+                                </th>
+                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase no-print">
+                                    Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCadastros" class="bg-white divide-y divide-gray-200 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ABA 2: CADASTRO ==================== -->
+        <div id="cadastro" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-700">Novo Cadastro</h2>
+
+                <form id="formCadastro" onsubmit="event.preventDefault(); submeterCadastro();" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Filtrar por Turma</label>
+                            <select id="turmaCadastro"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                onchange="atualizarSelectAlunos()">
+                                <option value="">Todas as turmas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Aluno</label>
+                            <select id="aluno"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                required onchange="atualizarRegras()">
+                                <option value="">Selecione um aluno...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Categoria</label>
+                        <select id="categoria"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos de Disciplinas gerados dinamicamente -->
+                    <div id="containerDisciplinas" class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4 mt-2">
+                        <!-- Os selects de disciplinas serão injetados via JavaScript -->
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" id="btnSalvar"
+                            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 font-semibold shadow-md transition duration-200">
+                            Registrar Aluno
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==================== ABA 3: RESULTADOS ==================== -->
+        <div id="resultados" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto text-center">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700">Gerar Resultados</h2>
+                <div class="bg-slate-50 border p-4 rounded-md text-left text-sm text-gray-600 mb-6 shadow-inner">
+                    <p class="mb-2">Gera as ramificações configuradas (<span id="labelPlanilhas"
+                            class="font-mono text-xs bg-gray-200 px-1 rounded"></span> e <span id="labelCsv"
+                            class="font-mono text-xs bg-gray-200 px-1 rounded"></span>) divididas por Área para status
+                        <strong>REALIZADO</strong>.
+                    </p>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li>Os arquivos serão separados por <strong>Área</strong>.</li>
+                        <li><strong>Planilhas:</strong> Contendo Matrícula, Nome e Pontuação, divididas em abas.</li>
+                        <li><strong>Arquivos CSV:</strong> Contendo a Matrícula e a pontuação real atualizada do aluno.
+                        </li>
+                        <li>O sufixo configurado será adicionado aos nomes automaticamente.</li>
+                    </ul>
+                </div>
+                <div class="mb-6 text-left">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ID da Pasta Base no Google Drive</label>
+                    <input type="text" id="folderId"
+                        class="w-full border-gray-300 rounded-md border p-2 focus:ring-indigo-500">
+                </div>
+                <button id="btnGerar" onclick="solicitarGeracaoPlanilhas(false)"
+                    class="w-full bg-emerald-600 text-white py-3 px-4 rounded-md hover:bg-emerald-700 font-bold shadow-lg transition duration-200">
+                    ⚙️ Gerar Arquivos no Drive
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =================================================================================
+        // ESTADO GLOBAL DO SISTEMA
+        // =================================================================================
+        let BD = { alunos: [], categorias: [], disciplinas: [], cadastros: [], folderIdPadrao: "", qtdDisciplinas: 3 };
+        let mapaAlunos = {};
+        const AUTH_STORAGE_KEY = "semana_talentos_auth_token";
+
+        // =================================================================================
+        // GERENCIAMENTO DE SESSÃO / AUTENTICAÇÃO
+        // =================================================================================
+        function getToken() {
+            return sessionStorage.getItem(AUTH_STORAGE_KEY) || "";
+        }
+
+        function salvarToken(token) {
+            sessionStorage.setItem(AUTH_STORAGE_KEY, token);
+        }
+
+        function limparToken() {
+            sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        }
+
+        function isAutenticado() {
+            return !!getToken();
+        }
+
+        function atualizarUIAutenticacao() {
+            const autenticado = isAutenticado();
+            const authContainer = document.getElementById('authContainer');
+            const bannerModoLeitura = document.getElementById('bannerModoLeitura');
+            const lockCadastro = document.getElementById('lock-badge-cadastro');
+            const lockResultados = document.getElementById('lock-badge-resultados');
+
+            if (autenticado) {
+                if (lockCadastro) lockCadastro.classList.add('hidden');
+                if (lockResultados) lockResultados.classList.add('hidden');
+                if (bannerModoLeitura) bannerModoLeitura.classList.add('hidden');
+
+                authContainer.innerHTML = `
+                    <div class="flex items-center gap-1.5 sm:gap-2">
+                        <span class="bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-emerald-400/40">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                            <span class="hidden sm:inline">Modo</span> Edição
+                        </span>
+                        <button onclick="abrirModalAlterarSenha()" title="Alterar Senha de Acesso"
+                            class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-medium py-1.5 px-2.5 rounded-md transition shadow flex items-center gap-1 border border-indigo-500">
+                            🔑 <span class="hidden md:inline">Senha</span>
+                        </button>
+                        <button onclick="fazerLogout()" title="Bloquear / Sair do modo de edição"
+                            class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-1.5 px-2.5 rounded-md transition shadow flex items-center gap-1">
+                            🚪 <span class="hidden md:inline">Bloquear</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                if (lockCadastro) lockCadastro.classList.remove('hidden');
+                if (lockResultados) lockResultados.classList.remove('hidden');
+                if (bannerModoLeitura) bannerModoLeitura.classList.remove('hidden');
+
+                authContainer.innerHTML = `
+                    <button onclick="abrirModalLogin()" 
+                        class="bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold py-1.5 px-3 rounded-md shadow-md flex items-center gap-1.5 transition transform active:scale-95">
+                        🔒 Desbloquear Edição
+                    </button>
+                `;
+            }
+
+            // Atualiza a tabela se a aba gerenciamento estiver visível
+            const tabGerenciamento = document.getElementById('gerenciamento');
+            if (tabGerenciamento && tabGerenciamento.classList.contains('active')) {
+                renderTabela();
+            }
+        }
+
+        function abrirModalLogin(callbackSucesso) {
+            Swal.fire({
+                title: 'Acesso Restrito',
+                text: 'Digite a senha para desbloquear o modo de edição:',
+                input: 'password',
+                inputPlaceholder: 'Digite a senha...',
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    autocorrect: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Desbloquear',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4f46e5',
+                showLoaderOnConfirm: true,
+                preConfirm: (senha) => {
+                    if (!senha) {
+                        Swal.showValidationMessage('Por favor, digite a senha.');
+                        return false;
+                    }
+                    return new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(res => resolve({ ok: true, data: res }))
+                            .withFailureHandler(err => resolve({ ok: false, erro: err.message || 'Senha incorreta.' }))
+                            .autenticar(senha);
+                    }).then(result => {
+                        if (!result.ok) {
+                            Swal.showValidationMessage(result.erro);
+                            return false;
+                        }
+                        return result.data;
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value && result.value.sucesso) {
+                    salvarToken(result.value.token);
+                    atualizarUIAutenticacao();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Desbloqueado!',
+                        text: 'Modo de edição liberado.',
+                        timer: 1400,
+                        showConfirmButton: false
+                    });
+                    if (typeof callbackSucesso === 'function') {
+                        callbackSucesso();
+                    }
+                }
+            });
+        }
+
+        function abrirModalAlterarSenha() {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => abrirModalAlterarSenha());
+                return;
+            }
+
+            Swal.fire({
+                title: 'Alterar Senha',
+                html: `
+                    <div class="text-left text-sm space-y-3 mt-2">
+                        <p class="text-gray-600 text-xs">A nova senha será salva como hashcode SHA-256 na aba <b>SETUP (Célula A2)</b>.</p>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nova Senha:</label>
+                            <input type="password" id="swal-nova-senha" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Mínimo 4 caracteres">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Confirmar Nova Senha:</label>
+                            <input type="password" id="swal-confirma-senha" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Digite novamente a nova senha">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar Nova Senha',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4f46e5',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    const nova = document.getElementById('swal-nova-senha').value;
+                    const confirma = document.getElementById('swal-confirma-senha').value;
+                    if (!nova || nova.trim().length < 4) {
+                        Swal.showValidationMessage('A nova senha deve ter no mínimo 4 caracteres.');
+                        return false;
+                    }
+                    if (nova !== confirma) {
+                        Swal.showValidationMessage('As senhas digitadas não coincidem.');
+                        return false;
+                    }
+                    return new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(res => resolve({ ok: true, data: res }))
+                            .withFailureHandler(err => resolve({ ok: false, erro: err.message || 'Erro ao alterar senha.' }))
+                            .alterarSenha(getToken(), nova.trim());
+                    }).then(result => {
+                        if (!result.ok) {
+                            Swal.showValidationMessage(result.erro);
+                            return false;
+                        }
+                        return result.data;
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value && result.value.sucesso) {
+                    salvarToken(result.value.novoToken);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        text: 'Senha alterada com sucesso.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        function fazerLogout() {
+            limparToken();
+            atualizarUIAutenticacao();
+            changeTab('gerenciamento');
+            Swal.fire({
+                icon: 'info',
+                title: 'Modo Bloqueado',
+                text: 'Você está no modo de visualização somente leitura.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        function tratarErroAutenticacao(err) {
+            if (err && err.message && err.message.toLowerCase().includes('não autorizado')) {
+                limparToken();
+                atualizarUIAutenticacao();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sessão Expirada',
+                    text: 'A senha foi alterada ou sua autorização expirou. Por favor, desbloqueie novamente.',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                Swal.fire('Erro!', err.message || 'Ocorreu um erro na operação.', 'error');
+            }
+        }
+
+        // =================================================================================
+        // CONTROLE DE ABAS E INICIALIZAÇÃO
+        // =================================================================================
+        window.onload = function () {
+            atualizarUIAutenticacao();
+            carregarDados();
+        };
+
+        function changeTab(tabName) {
+            // Se tentar acessar abas de edição sem estar autenticado, solicita senha
+            if ((tabName === 'cadastro' || tabName === 'resultados') && !isAutenticado()) {
+                abrirModalLogin(() => {
+                    executarMudancaAba(tabName);
+                });
+                return;
+            }
+
+            executarMudancaAba(tabName);
+        }
+
+        function executarMudancaAba(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button[id^="tab-"]').forEach(el => {
+                el.classList.remove('bg-indigo-700', 'text-white');
+                el.classList.add('text-indigo-100');
+            });
+
+            const targetTab = document.getElementById(tabName);
+            const targetBtn = document.getElementById('tab-' + tabName);
+
+            if (targetTab) targetTab.classList.add('active');
+            if (targetBtn) {
+                targetBtn.classList.add('bg-indigo-700', 'text-white');
+                targetBtn.classList.remove('text-indigo-100');
+            }
+
+            if (tabName === 'gerenciamento' || tabName === 'cadastro') {
+                carregarCadastros();
+            }
+        }
+
+        function loading(text) {
+            Swal.fire({
+                title: text,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+        }
+
+        // =================================================================================
+        // CARREGAMENTO DE DADOS
+        // =================================================================================
+        function carregarDados() {
+            loading('Carregando base de dados...');
+            google.script.run.withSuccessHandler(res => {
+                BD = { ...BD, ...res };
+
+                document.getElementById('pageTitle').innerText = res.nomeEvento;
+                document.getElementById('navTituloEvento').innerText = res.nomeEvento;
+                document.getElementById('labelPlanilhas').innerText = res.nomePastaPlanilhas;
+                document.getElementById('labelCsv').innerText = res.nomePastaCsv;
+                if (BD.folderIdPadrao) document.getElementById('folderId').value = BD.folderIdPadrao;
+
+                const turmasSet = new Set();
+                BD.alunos.forEach(a => { mapaAlunos[a.matricula] = a; turmasSet.add(a.turma); });
+                const turmasArray = Array.from(turmasSet).sort();
+
+                const selectTurmaCad = document.getElementById('turmaCadastro');
+                const fTurma = document.getElementById('filtroTurma');
+                selectTurmaCad.innerHTML = '<option value="">Todas as turmas</option>';
+                fTurma.innerHTML = '<option value="">Todas</option>';
+                turmasArray.forEach(t => { selectTurmaCad.add(new Option(t, t)); fTurma.add(new Option(t, t)); });
+
+                const fCat = document.getElementById('filtroCategoria');
+                const catForm = document.getElementById('categoria');
+                fCat.innerHTML = '<option value="">Todas</option>';
+                catForm.innerHTML = '<option value="">Selecione...</option>';
+                BD.categorias.forEach(c => { fCat.add(new Option(c, c)); catForm.add(new Option(c, c)); });
+
+                gerarCamposDisciplinas(BD.qtdDisciplinas);
+                atualizarSelectAlunos();
+                carregarCadastros();
+            }).withFailureHandler(err => {
+                Swal.fire('Erro', 'Falha ao carregar dados: ' + err.message, 'error');
+            }).getDadosIniciais();
+        }
+
+        function gerarCamposDisciplinas(qtd) {
+            const container = document.getElementById('containerDisciplinas');
+            container.innerHTML = '';
+            for (let i = 1; i <= qtd; i++) {
+                container.innerHTML += `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Disciplina ${i}</label>
+                        <select id="d${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-indigo-500 focus:border-indigo-500 disciplina-select" required onchange="validarDisciplinasForm()">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                `;
+            }
+
+            for (let i = 1; i <= qtd; i++) {
+                let sel = document.getElementById('d' + i);
+                BD.disciplinas.forEach(item => sel.add(new Option(item, item)));
+            }
+        }
+
+        function carregarCadastros() {
+            google.script.run.withSuccessHandler(res => {
+                BD.cadastros = res;
+                renderTabela();
+                atualizarRegras();
+                Swal.close();
+            }).withFailureHandler(err => {
+                Swal.fire('Erro', 'Falha ao carregar cadastros: ' + err.message, 'error');
+            }).getCadastros();
+        }
+
+        function atualizarSelectAlunos() {
+            const turmaSelecionada = document.getElementById('turmaCadastro').value;
+            const selectAluno = document.getElementById('aluno');
+            selectAluno.innerHTML = '<option value="">Selecione um aluno...</option>';
+            let alunosFiltrados = turmaSelecionada !== "" ? BD.alunos.filter(a => a.turma === turmaSelecionada) : BD.alunos;
+            alunosFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
+            alunosFiltrados.forEach(a => selectAluno.add(new Option(`${a.matricula} - ${a.nome} (${a.turma})`, a.matricula)));
+            atualizarRegras();
+        }
+
+        function atualizarRegras() {
+            const matricula = document.getElementById('aluno').value;
+
+            if (!matricula) {
+                Array.from(document.getElementById('categoria').options).forEach(opt => opt.disabled = false);
+                document.querySelectorAll('.disciplina-select').forEach(sel => {
+                    Array.from(sel.options).forEach(opt => opt.disabled = false);
+                });
+                return;
+            }
+
+            const cadsAluno = BD.cadastros.filter(c => c.matricula === matricula);
+            let catsUsadas = cadsAluno.map(c => c.categoria);
+
+            Array.from(document.getElementById('categoria').options).forEach(opt => {
+                opt.disabled = catsUsadas.includes(opt.value);
+            });
+
+            validarDisciplinasForm();
+        }
+
+        function validarDisciplinasForm() {
+            const matricula = document.getElementById('aluno').value;
+            const cadsAluno = BD.cadastros.filter(c => c.matricula === matricula);
+
+            let histDisc = [];
+            cadsAluno.forEach(c => histDisc.push(...c.disciplinas));
+
+            let currentValues = [];
+            for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                let val = document.getElementById('d' + i).value;
+                if (val) currentValues.push(val);
+            }
+
+            for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                let sel = document.getElementById('d' + i);
+                let myValue = sel.value;
+
+                Array.from(sel.options).forEach(opt => {
+                    if (opt.value === "") return;
+
+                    if (histDisc.includes(opt.value)) {
+                        opt.disabled = true;
+                        return;
+                    }
+
+                    if (currentValues.includes(opt.value) && opt.value !== myValue) {
+                        opt.disabled = true;
+                    } else {
+                        opt.disabled = false;
+                    }
+                });
+            }
+        }
+
+        // =================================================================================
+        // AÇÕES DE CADASTRO E GERENCIAMENTO (COM PROTEÇÃO DE SENHA)
+        // =================================================================================
+        function submeterCadastro() {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => submeterCadastro());
+                return;
+            }
+
+            const btn = document.getElementById('btnSalvar');
+
+            let discEscolhidas = [];
+            for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                discEscolhidas.push(document.getElementById('d' + i).value);
+            }
+
+            const dados = {
+                matricula: document.getElementById('aluno').value,
+                categoria: document.getElementById('categoria').value,
+                disciplinasEscolhidas: discEscolhidas
+            };
+
+            btn.disabled = true;
+            btn.innerText = "Salvando...";
+
+            google.script.run
+                .withSuccessHandler(() => {
+                    Swal.fire('Sucesso!', 'Cadastro realizado.', 'success');
+                    document.getElementById('formCadastro').reset();
+                    atualizarSelectAlunos();
+                    btn.disabled = false;
+                    btn.innerText = "Registrar Aluno";
+                    carregarCadastros();
+                })
+                .withFailureHandler(err => {
+                    btn.disabled = false;
+                    btn.innerText = "Registrar Aluno";
+                    tratarErroAutenticacao(err);
+                })
+                .salvarCadastro(dados, getToken());
+        }
+
+        function renderTabela() {
+            const fTurma = document.getElementById('filtroTurma').value;
+            const fCat = document.getElementById('filtroCategoria').value;
+            const fBusca = document.getElementById('filtroBusca').value.toLowerCase();
+            const tbody = document.getElementById('tbodyCadastros');
+            tbody.innerHTML = '';
+
+            const editavel = isAutenticado();
+
+            const filtrados = BD.cadastros.filter(c => {
+                const aluno = mapaAlunos[c.matricula];
+                if (!aluno) return false;
+                return (fTurma === "" || aluno.turma === fTurma) &&
+                    (fCat === "" || c.categoria === fCat) &&
+                    (fBusca === "" || aluno.nome.toLowerCase().includes(fBusca) || c.matricula.includes(fBusca));
+            });
+
+            filtrados.forEach(c => {
+                const a = mapaAlunos[c.matricula];
+                const tr = document.createElement('tr');
+
+                let corStatus = c.situacao === 'REALIZADO' ? 'text-emerald-700 bg-emerald-100' :
+                    c.situacao === 'NAO REALIZADO' ? 'text-red-700 bg-red-100' : 'text-yellow-700 bg-yellow-100';
+
+                let discHTML = c.disciplinas.map((d, i) => d ? `${i + 1}. ${d}` : '').filter(Boolean).join('<br>');
+
+                let pontosHTML = editavel
+                    ? `<input type="number" class="w-16 p-1 border rounded text-center focus:ring focus:ring-indigo-300 font-semibold" value="${c.pontos}" onchange="atualizarPontosJS(${c.linha}, this)">`
+                    : `<input type="number" class="w-16 p-1 border rounded text-center bg-slate-100 text-slate-500 font-semibold border-slate-200 cursor-not-allowed select-none" value="${c.pontos}" disabled title="Desbloqueie o modo de edição para alterar pontos">`;
+
+                let situacaoHTML = editavel
+                    ? `<select class="rounded border-gray-300 p-1 font-bold text-xs ${corStatus} cursor-pointer hover:ring-2 hover:ring-indigo-300" onchange="atualizarStatus(${c.linha}, this)">
+                        <option value="EM ABERTO" ${c.situacao === 'EM ABERTO' ? 'selected' : ''}>EM ABERTO</option>
+                        <option value="REALIZADO" ${c.situacao === 'REALIZADO' ? 'selected' : ''}>REALIZADO</option>
+                        <option value="NAO REALIZADO" ${c.situacao === 'NAO REALIZADO' ? 'selected' : ''}>NÃO REALIZADO</option>
+                       </select>`
+                    : `<select class="rounded border-gray-300 p-1 font-bold text-xs ${corStatus} opacity-80 cursor-not-allowed" disabled title="Desbloqueie o modo de edição para alterar situação">
+                        <option value="EM ABERTO" ${c.situacao === 'EM ABERTO' ? 'selected' : ''}>EM ABERTO</option>
+                        <option value="REALIZADO" ${c.situacao === 'REALIZADO' ? 'selected' : ''}>REALIZADO</option>
+                        <option value="NAO REALIZADO" ${c.situacao === 'NAO REALIZADO' ? 'selected' : ''}>NÃO REALIZADO</option>
+                       </select>`;
+
+                // Coluna de Ações (Apenas cadastros com situação EM ABERTO podem ser editados ou excluídos)
+                let acoesHTML = '—';
+                if (c.situacao === 'EM ABERTO') {
+                    if (editavel) {
+                        acoesHTML = `
+                            <div class="flex items-center justify-center gap-1.5 no-print">
+                                <button onclick="abrirModalEdicao(${c.linha})" title="Editar Categoria / Disciplinas"
+                                    class="p-1.5 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-md border border-indigo-200 transition text-xs flex items-center gap-1 font-medium shadow-sm">
+                                    ✏️ <span class="hidden xl:inline">Editar</span>
+                                </button>
+                                <button onclick="confirmarExclusao(${c.linha})" title="Excluir Inscrição"
+                                    class="p-1.5 text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 rounded-md border border-rose-200 transition text-xs flex items-center gap-1 font-medium shadow-sm">
+                                    🗑️ <span class="hidden xl:inline">Excluir</span>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        acoesHTML = `
+                            <div class="flex items-center justify-center no-print">
+                                <button onclick="abrirModalLogin(() => renderTabela())" title="Desbloqueie para editar ou excluir"
+                                    class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1 bg-slate-50 rounded border border-slate-200 transition">
+                                    🔒
+                                </button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    acoesHTML = `
+                        <span class="text-xs text-slate-400 italic no-print" title="Apenas cadastros EM ABERTO podem ser alterados ou excluídos">
+                            Concluído
+                        </span>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap">${a.turma}</td>
+                    <td class="px-3 py-2 whitespace-nowrap font-mono text-xs">${c.matricula}</td>
+                    <td class="px-3 py-2 font-medium">${a.nome}</td>
+                    <td class="px-3 py-2">${c.categoria}</td>
+                    <td class="px-3 py-2 text-xs">${discHTML}</td>
+                    <td class="px-3 py-2">${pontosHTML}</td>
+                    <td class="px-3 py-2">${situacaoHTML}</td>
+                    <td class="px-3 py-2 text-center whitespace-nowrap">${acoesHTML}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function atualizarPontosJS(linha, inputEl) {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => renderTabela());
+                return;
+            }
+
+            const novosPontos = Number(inputEl.value);
+            inputEl.classList.add('bg-emerald-100');
+
+            google.script.run
+                .withSuccessHandler(() => setTimeout(() => inputEl.classList.remove('bg-emerald-100'), 800))
+                .withFailureHandler(err => {
+                    tratarErroAutenticacao(err);
+                    carregarCadastros();
+                })
+                .atualizarPontos(linha, novosPontos, getToken());
+        }
+
+        function atualizarStatus(linha, selectEl) {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => renderTabela());
+                return;
+            }
+
+            const novaSituacao = selectEl.value;
+            google.script.run
+                .withSuccessHandler(() => carregarCadastros())
+                .withFailureHandler(err => {
+                    tratarErroAutenticacao(err);
+                    carregarCadastros();
+                })
+                .atualizarSituacao(linha, novaSituacao, getToken());
+        }
+
+        // =================================================================================
+        // EDIÇÃO E EXCLUSÃO DE CADASTROS (EM ABERTO)
+        // =================================================================================
+        function abrirModalEdicao(linha) {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => abrirModalEdicao(linha));
+                return;
+            }
+
+            const c = BD.cadastros.find(item => item.linha === linha);
+            if (!c) {
+                Swal.fire('Erro', 'Cadastro não encontrado.', 'error');
+                return;
+            }
+
+            const a = mapaAlunos[c.matricula] || { nome: c.matricula, turma: '' };
+
+            // Identifica o que já foi usado em OUTROS cadastros deste mesmo aluno
+            const outrosCadastros = BD.cadastros.filter(item => item.matricula === c.matricula && item.linha !== c.linha);
+            const catsUsadasOutros = outrosCadastros.map(item => item.categoria);
+            const discsUsadasOutros = [];
+            outrosCadastros.forEach(item => discsUsadasOutros.push(...item.disciplinas));
+
+            // Constrói options de Categoria
+            let optionsCat = '<option value="">Selecione...</option>';
+            BD.categorias.forEach(cat => {
+                const isCurrent = (cat === c.categoria);
+                const isBlocked = catsUsadasOutros.includes(cat);
+                optionsCat += `<option value="${cat}" ${isCurrent ? 'selected' : ''} ${isBlocked ? 'disabled' : ''}>${cat}${isBlocked ? ' (Já cadastrada)' : ''}</option>`;
+            });
+
+            // Constrói selects de Disciplinas
+            let selectsDiscHTML = '';
+            for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                const valAtual = c.disciplinas[i - 1] || '';
+                let optionsDisc = '<option value="">Selecione...</option>';
+                BD.disciplinas.forEach(d => {
+                    const isCurrent = (d === valAtual);
+                    const isBlocked = discsUsadasOutros.includes(d);
+                    optionsDisc += `<option value="${d}" ${isCurrent ? 'selected' : ''} ${isBlocked ? 'disabled' : ''}>${d}${isBlocked ? ' (Já usada)' : ''}</option>`;
+                });
+
+                selectsDiscHTML += `
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Disciplina ${i}:</label>
+                        <select id="swal-edit-d${i}" class="w-full border rounded p-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 swal-edit-disc" onchange="validarDisciplinasModalEdicao()">
+                            ${optionsDisc}
+                        </select>
+                    </div>
+                `;
+            }
+
+            Swal.fire({
+                title: 'Editar Inscrição',
+                html: `
+                    <div class="text-left text-sm space-y-3 mt-2">
+                        <div class="bg-indigo-50 border border-indigo-100 p-2.5 rounded text-xs">
+                            <p><b>Aluno:</b> ${a.nome} (${a.turma})</p>
+                            <p><b>Matrícula:</b> ${c.matricula}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Categoria:</label>
+                            <select id="swal-edit-cat" class="w-full border rounded p-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500">
+                                ${optionsCat}
+                            </select>
+                        </div>
+                        <div class="border-t pt-3 space-y-2">
+                            <p class="text-xs font-bold text-gray-600 uppercase">Disciplinas:</p>
+                            ${selectsDiscHTML}
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar Alterações',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4f46e5',
+                didOpen: () => {
+                    // Executa a validação cruzada das disciplinas no formulário do modal
+                    window.tempDiscsUsadas = discsUsadasOutros;
+                    validarDisciplinasModalEdicao();
+                },
+                preConfirm: () => {
+                    const novaCategoria = document.getElementById('swal-edit-cat').value;
+                    if (!novaCategoria) {
+                        Swal.showValidationMessage('Selecione uma categoria.');
+                        return false;
+                    }
+
+                    let novasDisciplinas = [];
+                    for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                        const val = document.getElementById('swal-edit-d' + i).value;
+                        if (!val) {
+                            Swal.showValidationMessage(`Selecione a Disciplina ${i}.`);
+                            return false;
+                        }
+                        novasDisciplinas.push(val);
+                    }
+
+                    const setDisc = new Set(novasDisciplinas);
+                    if (setDisc.size !== novasDisciplinas.length) {
+                        Swal.showValidationMessage('Não é permitido repetir disciplinas.');
+                        return false;
+                    }
+
+                    return new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(res => resolve({ ok: true, data: res }))
+                            .withFailureHandler(err => resolve({ ok: false, erro: err.message || 'Erro ao editar cadastro.' }))
+                            .editarCadastro({
+                                linha: c.linha,
+                                matricula: c.matricula,
+                                categoriaOriginal: c.categoria,
+                                novaCategoria: novaCategoria,
+                                novasDisciplinas: novasDisciplinas
+                            }, getToken());
+                    }).then(result => {
+                        if (!result.ok) {
+                            Swal.showValidationMessage(result.erro);
+                            return false;
+                        }
+                        return result.data;
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value && result.value.sucesso) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Atualizado!',
+                        text: 'Cadastro editado com sucesso.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    carregarCadastros();
+                }
+            });
+        }
+
+        function validarDisciplinasModalEdicao() {
+            const discsUsadasOutros = window.tempDiscsUsadas || [];
+            let currentValues = [];
+            for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                let el = document.getElementById('swal-edit-d' + i);
+                if (el && el.value) currentValues.push(el.value);
+            }
+
+            for (let i = 1; i <= BD.qtdDisciplinas; i++) {
+                let sel = document.getElementById('swal-edit-d' + i);
+                if (!sel) continue;
+                let myValue = sel.value;
+
+                Array.from(sel.options).forEach(opt => {
+                    if (opt.value === "") return;
+
+                    if (discsUsadasOutros.includes(opt.value)) {
+                        opt.disabled = true;
+                        return;
+                    }
+
+                    if (currentValues.includes(opt.value) && opt.value !== myValue) {
+                        opt.disabled = true;
+                    } else {
+                        opt.disabled = false;
+                    }
+                });
+            }
+        }
+
+        function confirmarExclusao(linha) {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => confirmarExclusao(linha));
+                return;
+            }
+
+            const c = BD.cadastros.find(item => item.linha === linha);
+            if (!c) {
+                Swal.fire('Erro', 'Cadastro não encontrado.', 'error');
+                return;
+            }
+
+            const a = mapaAlunos[c.matricula] || { nome: c.matricula, turma: '' };
+
+            Swal.fire({
+                title: 'Excluir Inscrição?',
+                html: `
+                    <div class="text-left text-sm text-gray-700 space-y-2">
+                        <p>Tem certeza que deseja excluir esta inscrição?</p>
+                        <div class="bg-slate-50 border p-3 rounded text-xs space-y-1">
+                            <p><b>Aluno:</b> ${a.nome} (${a.turma})</p>
+                            <p><b>Matrícula:</b> ${c.matricula}</p>
+                            <p><b>Categoria:</b> ${c.categoria}</p>
+                            <p><b>Disciplinas:</b> ${c.disciplinas.filter(Boolean).join(', ')}</p>
+                        </div>
+                        <p class="text-rose-600 font-semibold text-xs mt-2">Esta ação removerá a linha da planilha permanentemente.</p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, Excluir',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#e11d48',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(res => resolve({ ok: true, data: res }))
+                            .withFailureHandler(err => resolve({ ok: false, erro: err.message || 'Erro ao excluir.' }))
+                            .excluirCadastro(c.linha, c.matricula, c.categoria, getToken());
+                    }).then(result => {
+                        if (!result.ok) {
+                            Swal.showValidationMessage(result.erro);
+                            return false;
+                        }
+                        return result.data;
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value && result.value.sucesso) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Excluído!',
+                        text: 'Inscrição removida com sucesso.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    carregarCadastros();
+                }
+            });
+        }
+
+        // =================================================================================
+        // GERAÇÃO DE RESULTADOS
+        // =================================================================================
+        function solicitarGeracaoPlanilhas(substituirConfirma = false) {
+            if (!isAutenticado()) {
+                abrirModalLogin(() => solicitarGeracaoPlanilhas(substituirConfirma));
+                return;
+            }
+
+            let folderId = document.getElementById('folderId').value.trim();
+            if (!folderId && !BD.folderIdPadrao) {
+                Swal.fire('Atenção', 'Insira o ID da pasta do Drive.', 'warning');
+                return;
+            }
+
+            loading('Processando arquivos no Drive...');
+
+            google.script.run
+                .withSuccessHandler(res => {
+                    if (res.requerConfirmacao) {
+                        Swal.fire({
+                            title: 'Arquivos conflitantes',
+                            html: `<b>${res.arquivos.join('<br>')}</b><br><br>Substituir?`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sim',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) solicitarGeracaoPlanilhas(true);
+                        });
+                    } else if (res.sucesso) {
+                        Swal.fire('Pronto!', 'Resultados gerados com sucesso no Google Drive.', 'success');
+                    }
+                })
+                .withFailureHandler(err => {
+                    tratarErroAutenticacao(err);
+                })
+                .gerarPlanilhasResultados(folderId, substituirConfirma, getToken());
+        }
+    </script>
+</body>
+
+</html>
