@@ -223,6 +223,48 @@
         input[type="number"] {
             -moz-appearance: textfield;
         }
+
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .device-badge.pc {
+            background: #e0f2fe;
+            color: #0284c7;
+            border: 1px solid #bae6fd;
+        }
+        .device-badge.mobile {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .btn-video-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .btn-video-chip:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -248,6 +290,10 @@
                 <button onclick="changeTab('resultados')" id="tab-resultados"
                     class="text-indigo-100 hover:bg-indigo-500 px-3 py-2 rounded-md font-semibold text-sm transition flex items-center gap-1">
                     <span id="lock-badge-resultados">🔒</span> Resultados
+                </button>
+                <button onclick="changeTab('configuracoes')" id="tab-configuracoes"
+                    class="text-indigo-100 hover:bg-indigo-500 px-3 py-2 rounded-md font-semibold text-sm transition flex items-center gap-1">
+                    ⚙️ Configurações
                 </button>
             </div>
 
@@ -424,58 +470,31 @@
                     </div>
                 </div>
 
-                <!-- 3. Painel Ativo de Resultados e Bookmarklet (Quando H2 = SIM ou usuário autenticado) -->
+                <!-- 3. Painel Ativo de Resultados (Quando H2 = SIM ou usuário autenticado) -->
                 <div id="painelAtivoResultados" class="space-y-6">
 
-                    <!-- PASSO 1: Instalação do Bookmarklet no Navegador -->
-                    <div class="bg-gradient-to-r from-sky-50 via-indigo-50 to-blue-50 border border-sky-200 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="bg-sky-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">Passo 1</span>
-                            <h3 class="text-base font-bold text-slate-800">Instalação do Botão no Navegador (Feito 1 única vez)</h3>
-                        </div>
-                        <p class="text-xs sm:text-sm text-slate-600 mb-3">
-                            Arraste o botão azul abaixo diretamente para a <strong>Barra de Favoritos</strong> do seu navegador. Quando estiver no Professor Online, basta clicar nele para preencher as notas!
-                        </p>
-
-                        <!-- Zona de Arrastar e Soltar (Drag-and-Drop) -->
-                        <div class="bookmarklet-drag-zone">
-                            <p class="text-sky-900 font-semibold text-xs sm:text-sm mb-2">
-                                👇 <strong>Clique e arraste este botão</strong> para a barra superior do navegador:
-                            </p>
-                            
-                            <a id="btn-drag-bookmarklet" 
-                               href="#" 
-                               draggable="true" 
-                               class="bookmarklet-draggable" 
-                               title="Clique e arraste para a Barra de Favoritos do seu Navegador">
-                                <span id="labelNomeBotaoBookmarklet">⭐ Semana de Talentos - Lançar Notas</span> <span class="drag-pill">↔ Arrastar</span>
-                            </a>
-
-                            <div class="mt-2 text-xs text-sky-700 flex items-center justify-center gap-1.5 flex-wrap">
-                                <span>💡 Barra de favoritos oculta? Pressione</span>
-                                <kbd class="bg-white border border-sky-300 text-sky-900 px-1.5 py-0.5 rounded font-mono font-bold shadow-xs">Ctrl + Shift + B</kbd>
-                                <span>no teclado.</span>
+                    <!-- Seleção de Turma, Disciplina e Cópia das Notas -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-800">Lançamento de Notas por Disciplina e Turma</h3>
+                                <p class="text-xs text-slate-500">
+                                    Selecione a disciplina e a turma desejada e clique em <strong>Copiar Notas</strong>.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button type="button" onclick="abrirVideoOuTutorial('copiarPC')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-xs"
+                                    title="Vídeo tutorial de como copiar e lançar notas no Computador">
+                                    💻 No Computador
+                                </button>
+                                <button type="button" onclick="abrirVideoOuTutorial('copiarCelular')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-xs"
+                                    title="Tutorial de como copiar e lançar notas no Celular">
+                                    📱 No Celular
+                                </button>
                             </div>
                         </div>
-
-                        <!-- Fallback manual / celular -->
-                        <div class="flex justify-center mt-2">
-                            <button onclick="copiarCodigoBookmarklet()" 
-                                class="text-xs text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-md font-medium transition shadow-xs flex items-center gap-1.5">
-                                📋 Copiar Código do Bookmarklet (Para adicionar manualmente ou no celular)
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- PASSO 2: Seleção de Turma, Disciplina e Cópia das Notas -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">Passo 2</span>
-                            <h3 class="text-base font-bold text-slate-800">Lançamento de Notas por Disciplina e Turma</h3>
-                        </div>
-                        <p class="text-xs text-slate-500">
-                            Selecione a disciplina e a turma desejada. Ao clicar em <strong>"Copiar Notas para o Professor Online"</strong>, o sistema alimentará a Área de Transferência para o bookmarklet.
-                        </p>
 
                         <!-- Filtros Dinâmicos de Disciplina e Turma -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -506,11 +525,28 @@
                                     Total de alunos com nota: <strong id="labelResTotalAlunos" class="text-emerald-700 font-extrabold">0 notas</strong>
                                 </div>
                             </div>
-                            <button id="btnCopiarNotasSIGE" onclick="copiarNotasSelecionadasParaSIGE()"
-                                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-sm transform active:scale-95">
-                                📋 Copiar Notas para o Professor Online
+                            <div class="flex flex-col sm:flex-row items-center gap-2">
+                                <button type="button" onclick="abrirVideoOuTutorial('copiarPC')" class="btn-video-chip" title="Como Copiar Notas no Computador">
+                                    💻 Vídeo: No PC
+                                </button>
+                                <button type="button" onclick="abrirVideoOuTutorial('copiarCelular')" class="btn-video-chip" title="Como Copiar Notas no Celular">
+                                    📱 Vídeo: No Celular
+                                </button>
+                                <button id="btnCopiarNotasSIGE" onclick="copiarNotasSelecionadasParaSIGE()"
+                                    class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-sm transform active:scale-95">
+                                    📋 Copiar Notas
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Atalho para Configurações -->
+                        <div class="flex items-center justify-between flex-wrap gap-2 text-xs text-slate-500 pt-2 border-t border-slate-100">
+                            <span>💡 Ainda não tem o favorito <strong>ProfOnline</strong> salvo no seu navegador?</span>
+                            <button type="button" onclick="changeTab('configuracoes')" class="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1">
+                                ⚙️ Acessar Configurações →
                             </button>
                         </div>
+                    </div>
 
                         <!-- Tabela de Alunos com Pontuação nesta Disciplina/Turma -->
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -572,9 +608,124 @@
 
             </div>
         </div>
+
+        <!-- ==================== ABA 4: CONFIGURAÇÕES (FAVORITOS & INTEGRAÇÃO) ==================== -->
+        <div id="configuracoes" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-4 sm:p-8 space-y-8">
+                <!-- Cabeçalho da Aba -->
+                <div class="border-b border-slate-200 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                            ⚙️ Configurações de Integração
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1">
+                            Instale o favorito <strong>ProfOnline</strong> no seu navegador para enviar as notas com 1 clique.
+                        </p>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        ⚡ Integração SIGE / Professor Online
+                    </span>
+                </div>
+
+                <!-- Grid com 2 Cards: Computador e Celular -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Card 1: Computador (PC / Notebook) -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="device-badge pc">
+                                    💻 Computador / Notebook
+                                </span>
+                                <button type="button" onclick="abrirVideoOuTutorial('criarPc')" class="btn-video-chip">
+                                    ▶ Vídeo: Como criar no PC
+                                </button>
+                            </div>
+
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Arraste o botão azul para a sua barra de favoritos no topo do navegador (Chrome, Edge, Firefox, etc.).
+                            </p>
+
+                            <!-- Zona de Arraste -->
+                            <div class="bookmarklet-drag-zone my-4">
+                                <div class="text-xs text-sky-800 font-semibold mb-2 flex items-center justify-center gap-1">
+                                    <span>👇 Clique e <strong>arraste</strong> para os favoritos:</span>
+                                </div>
+                                <a id="btn-drag-bookmarklet" href="#" title="ProfOnline" class="bookmarklet-draggable">
+                                    <span id="labelNomeBotaoBookmarklet">⭐ ProfOnline</span>
+                                </a>
+                                <p class="text-[11px] text-slate-400 mt-2">Dica: use <kbd class="bg-white border border-slate-300 px-1 py-0.5 rounded font-mono text-[10px]">Ctrl + Shift + B</kbd> se a barra estiver oculta.</p>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-2">
+                                <div class="font-bold text-slate-700">Como funciona:</div>
+                                <ol class="list-decimal pl-4 space-y-1 text-slate-500">
+                                    <li>Copie as notas na aba <strong>Resultados</strong> clicando em <strong>"📋 Copiar Notas"</strong>.</li>
+                                    <li>Abra o <strong>Professor Online</strong> na tela de digitação de notas.</li>
+                                    <li>Clique no seu favorito <strong>ProfOnline</strong> salvo na barra!</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                            <span>Alternativa manual:</span>
+                            <button type="button" onclick="copiarCodigoBookmarklet()" class="text-indigo-600 hover:text-indigo-800 font-semibold">
+                                Copiar código JS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Celular (Smartphone / Tablet) -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="device-badge mobile">
+                                    📱 Celular / Smartphone
+                                </span>
+                                <button type="button" onclick="abrirVideoOuTutorial('criarCelular')" class="btn-video-chip">
+                                    ▶ Vídeo: Como criar no Celular
+                                </button>
+                            </div>
+
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                No celular não é possível arrastar. Toque no botão para copiar o código e cole no campo URL de um favorito novo no seu navegador.
+                            </p>
+
+                            <!-- Botão Copiar Celular -->
+                            <div class="my-4 text-center">
+                                <button id="btn-copiar-bookmarklet-mobile" onclick="copiarCodigoBookmarklet()"
+                                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 text-sm">
+                                    📋 ProfOnline
+                                </button>
+                                <p class="text-[11px] text-slate-400 mt-2">Clique para copiar o código do favorito</p>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-2">
+                                <div class="font-bold text-slate-700">Passo a passo no Celular (Chrome):</div>
+                                <ol class="list-decimal pl-4 space-y-1 text-slate-500">
+                                    <li>Toque em <strong>"📋 ProfOnline"</strong> acima para copiar o código.</li>
+                                    <li>Favorite qualquer página tocando no menu (⋮) e na estrela (⭐).</li>
+                                    <li>Toque em <strong>Editar</strong>, renomeie para <code>ProfOnline</code> e no campo <strong>URL</strong> cole o código copiado.</li>
+                                    <li>No Professor Online (tela de notas), digite <code>ProfOnline</code> na barra de endereços e toque no favorito!</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                            <span>Compatibilidade:</span>
+                            <span class="text-slate-600 font-medium">Chrome Android, Safari iOS, Edge</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Configurações de Vídeos do YouTube injetados pelo backend
+        window.CONFIG_VIDEOS = window.CONFIG_VIDEOS || { criarPC: "", criarCelular: "", copiarPC: "", copiarCelular: "", copiarNotas: "" };
+
         // =================================================================================
         // ESTADO GLOBAL DO SISTEMA
         // =================================================================================
@@ -934,6 +1085,9 @@
             loading('Carregando base de dados...');
             google.script.run.withSuccessHandler(res => {
                 BD = { ...BD, ...res };
+                if (res.configVideos) {
+                    window.CONFIG_VIDEOS = { ...window.CONFIG_VIDEOS, ...res.configVideos };
+                }
 
                 document.getElementById('pageTitle').innerText = res.nomeEvento;
                 document.getElementById('navTituloEvento').innerText = res.nomeEvento;
@@ -1461,33 +1615,31 @@
         }
 
         // =================================================================================
-        // BOOKMARKLET E LANÇAMENTO DE NOTAS NO PROFESSOR ONLINE (ABA RESULTADOS)
+        // BOOKMARKLET E INTEGRAÇÃO COM PROFESSOR ONLINE (ABA CONFIGURAÇÕES & RESULTADOS)
         // =================================================================================
 
         function inicializarBookmarklet() {
             const btnDrag = document.getElementById('btn-drag-bookmarklet');
             const labelBtn = document.getElementById('labelNomeBotaoBookmarklet');
-            const nomeEvento = BD.nomeEvento || "Semana de Talentos";
-            const nomeCompletoBotao = `${nomeEvento} - Lançar Notas`;
 
             if (labelBtn) {
-                labelBtn.innerHTML = `⭐ ${nomeCompletoBotao}`;
+                labelBtn.innerHTML = `⭐ ProfOnline`;
             }
 
             if (btnDrag) {
                 btnDrag.href = BOOKMARKLET_URI;
-                btnDrag.title = `Arraste "${nomeCompletoBotao}" para a Barra de Favoritos`;
+                btnDrag.title = `ProfOnline`;
                 btnDrag.addEventListener('click', (e) => {
                     e.preventDefault();
                     Swal.fire({
                         title: '⚡ Como instalar o botão:',
                         html: `
                             <div class="text-left text-sm space-y-3">
-                                <p class="text-slate-700">Para usar o Bookmarklet <b>"${nomeCompletoBotao}"</b> no <b>Professor Online</b>:</p>
+                                <p class="text-slate-700">Para usar o Bookmarklet <b>"ProfOnline"</b> no <b>Professor Online</b>:</p>
                                 <ol class="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
                                     <li>Clique e <b>ARRASTE</b> o botão azul para a sua <b>Barra de Favoritos</b> no topo do navegador.</li>
                                     <li>Se a barra de favoritos não estiver visível, pressione <kbd class="bg-slate-200 px-1.5 py-0.5 rounded font-mono font-bold">Ctrl + Shift + B</kbd> no teclado.</li>
-                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no Professor Online e <b>clique no favorito "${nomeCompletoBotao}"</b> instalado!</li>
+                                    <li>Depois de copiar as notas de uma turma aqui no sistema, abra a tela de digitação de notas no Professor Online e <b>clique no favorito "ProfOnline"</b> instalado!</li>
                                 </ol>
                             </div>
                         `,
@@ -1500,12 +1652,24 @@
         }
 
         function copiarCodigoBookmarklet() {
+            const btnMobile = document.getElementById('btn-copiar-bookmarklet-mobile');
+            const darFeedback = () => {
+                if (btnMobile) {
+                    const originalHtml = btnMobile.innerHTML;
+                    btnMobile.innerHTML = '✅ Copiado!';
+                    setTimeout(() => {
+                        btnMobile.innerHTML = originalHtml;
+                    }, 2000);
+                }
+            };
+
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(BOOKMARKLET_URI).then(() => {
+                    darFeedback();
                     Swal.fire({
                         icon: 'success',
                         title: 'Código Copiado!',
-                        html: '<p class="text-xs text-slate-600">O código JavaScript do Bookmarklet foi copiado para a Área de Transferência. No seu navegador, crie um novo favorito e cole este código no campo de <b>URL</b>.</p>',
+                        html: '<p class="text-xs text-slate-600">O código JavaScript do favorito <b>ProfOnline</b> foi copiado para a Área de Transferência. No seu celular ou navegador, crie um novo favorito e cole este código no campo de <b>URL</b>.</p>',
                         confirmButtonColor: '#0284c7'
                     });
                 }).catch(() => {
@@ -1515,6 +1679,143 @@
                 prompt('Copie o código do Bookmarklet abaixo:', BOOKMARKLET_URI);
             }
         }
+
+        // =================================================================================
+        // VÍDEOS TUTORIAIS DO YOUTUBE / MODAL
+        // =================================================================================
+
+        function getYoutubeEmbedUrl(url) {
+            if (!url) return null;
+            let videoId = '';
+            const matchShort = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+            if (matchShort && matchShort[1]) {
+                videoId = matchShort[1];
+            } else {
+                const matchLong = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+                if (matchLong && matchLong[1]) {
+                    videoId = matchLong[1];
+                } else {
+                    const matchEmbed = url.match(/embed\/([a-zA-Z0-9_-]{11})/);
+                    if (matchEmbed && matchEmbed[1]) videoId = matchEmbed[1];
+                }
+            }
+            return videoId ? ('https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1') : null;
+        }
+
+        function abrirVideoOuTutorial(tipo) {
+            const configs = window.CONFIG_VIDEOS || BD.configVideos || {};
+            let url = '';
+            let titulo = 'Tutorial de Uso';
+            let fallbackHtml = '';
+
+            if (tipo === 'criarPc' || tipo === 'pc') {
+                url = configs.criarPC || configs.criarPc || '';
+                titulo = 'Vídeo Tutorial: Como criar o favorito no Computador';
+                fallbackHtml = `
+                    <h4 class="font-bold text-slate-800 text-base mb-2">Instalação no Computador (PC / Notebook)</h4>
+                    <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                        <li>Na aba <strong>Configurações</strong>, localize o botão azul <strong>"⭐ ProfOnline"</strong>.</li>
+                        <li>Clique e arraste esse botão diretamente para a <strong>Barra de Favoritos</strong> no topo do seu navegador.</li>
+                        <li>Se a barra de favoritos não estiver aparecendo, pressione <kbd class="bg-slate-200 px-1.5 py-0.5 rounded font-mono font-bold">Ctrl + Shift + B</kbd>.</li>
+                        <li>Pronto! Ele ficará salvo com o nome <strong>ProfOnline</strong>.</li>
+                    </ol>
+                `;
+            } else if (tipo === 'criarCelular') {
+                url = configs.criarCelular || '';
+                titulo = 'Vídeo Tutorial: Como criar o favorito no Celular';
+                fallbackHtml = `
+                    <h4 class="font-bold text-slate-800 text-base mb-2">Instalação no Celular (Android / iPhone)</h4>
+                    <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                        <li>Na aba <strong>Configurações</strong>, toque no botão verde <strong>"📋 ProfOnline"</strong> para copiar o código.</li>
+                        <li>No Chrome do celular, acesse qualquer site, abra o menu (três pontinhos <strong>⋮</strong>) e toque na <strong>Estrela (⭐)</strong>.</li>
+                        <li>Toque em <strong>Editar</strong> na mensagem que aparece no rodapé.</li>
+                        <li>Mude o Nome para <code>ProfOnline</code>.</li>
+                        <li>No campo URL, <strong>apague tudo e cole o código copiado</strong>. Salve.</li>
+                        <li>Para usar: na tela de digitação de notas do Professor Online, toque na barra de endereços, digite <code>ProfOnline</code> e clique no favorito sugerido!</li>
+                    </ol>
+                `;
+            } else if (tipo === 'copiarPC' || tipo === 'copiarNotas') {
+                url = configs.copiarPC || configs.copiarNotas || '';
+                titulo = 'Vídeo Tutorial: Como Copiar e Lançar Notas no Computador';
+                fallbackHtml = `
+                    <h4 class="font-bold text-slate-800 text-base mb-2">💻 Como Copiar e Lançar as Notas no Computador</h4>
+                    <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                        <li>Selecione a disciplina e a turma desejada na aba <strong>Resultados</strong>.</li>
+                        <li>Clique no botão verde <strong>"📋 Copiar Notas"</strong>.</li>
+                        <li>Abra a aba do <strong>Professor Online</strong> onde a turma e disciplina correspondente estão abertas para digitação de notas.</li>
+                        <li>Clique no seu favorito <strong>ProfOnline</strong> na barra de favoritos.</li>
+                        <li>Uma janela de confirmação surgirá. Clique em <strong>"✓ Inserir Notas"</strong> e o sistema preencherá as notas automaticamente!</li>
+                    </ol>
+                `;
+            } else if (tipo === 'copiarCelular') {
+                url = configs.copiarCelular || '';
+                titulo = 'Vídeo Tutorial: Como Copiar e Lançar Notas no Celular';
+                fallbackHtml = `
+                    <h4 class="font-bold text-slate-800 text-base mb-2">📱 Como Copiar e Lançar as Notas no Celular</h4>
+                    <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                        <li>Selecione a disciplina e a turma desejada na aba <strong>Resultados</strong>.</li>
+                        <li>Toque no botão verde <strong>"📋 Copiar Notas"</strong> para carregar a Área de Transferência.</li>
+                        <li>No navegador do celular, abra a aba do <strong>Professor Online</strong> na digitação de notas da turma/disciplina.</li>
+                        <li>Toque na <strong>barra de endereços</strong> do navegador, digite <code>ProfOnline</code> e toque no favorito sugerido.</li>
+                        <li>A janela de confirmação abrirá na tela do smartphone. Toque em <strong>"✓ Inserir Notas"</strong> para enviar todas as notas instantaneamente!</li>
+                    </ol>
+                `;
+            }
+
+            abrirModalVideo(url, titulo, fallbackHtml);
+        }
+
+        function abrirModalVideo(url, titulo, fallbackTutorialHtml) {
+            const modal = document.getElementById('modal-video-player');
+            const iframe = document.getElementById('video-player-iframe');
+            const iframeCont = document.getElementById('modal-video-iframe-container');
+            const fallback = document.getElementById('modal-video-fallback');
+            const tituloEl = document.getElementById('modal-video-titulo');
+            const linkExt = document.getElementById('video-link-externo');
+
+            if (tituloEl) tituloEl.textContent = titulo;
+
+            const embedUrl = getYoutubeEmbedUrl(url);
+
+            if (embedUrl) {
+                iframe.src = embedUrl;
+                iframeCont.style.display = 'block';
+                fallback.style.display = 'none';
+                linkExt.style.display = 'inline-flex';
+                linkExt.href = url;
+            } else {
+                iframe.src = '';
+                iframeCont.style.display = 'none';
+                fallback.innerHTML = fallbackTutorialHtml || '<p>Nenhum vídeo cadastrado no momento. Consulte o passo a passo na aba Configurações.</p>';
+                fallback.style.display = 'block';
+                linkExt.style.display = 'none';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function fecharModalVideo() {
+            const modal = document.getElementById('modal-video-player');
+            const iframe = document.getElementById('video-player-iframe');
+            if (iframe) iframe.src = '';
+            if (modal) modal.style.display = 'none';
+        }
+
+        function fecharModalVideoSeForBackdrop(e) {
+            if (e.target.id === 'modal-video-player') {
+                fecharModalVideo();
+            }
+        }
+
+        // Tecla ESC para fechar o vídeo em tela cheia e parar o áudio instantaneamente
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+                const modal = document.getElementById('modal-video-player');
+                if (modal && modal.style.display !== 'none') {
+                    fecharModalVideo();
+                }
+            }
+        });
 
         function confirmarAlterarLiberacao(liberar) {
             if (!isAutenticado()) {
@@ -2297,6 +2598,46 @@
             container.innerHTML = html;
         }
     </script>
+
+    <!-- Modal de Vídeo Player / Tutorial Tela Cheia (Cinema / Theater Mode) -->
+    <div id="modal-video-player" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; background:rgba(3,7,18,0.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;" onclick="fecharModalVideoSeForBackdrop(event)">
+        <div style="width:96vw; max-width:1200px; height:92vh; max-height:850px; background:#0f172a; border:1px solid rgba(255,255,255,0.18); border-radius:18px; box-shadow:0 30px 60px rgba(0,0,0,0.8); display:flex; flex-direction:column; overflow:hidden;">
+            
+            <!-- Header -->
+            <div style="padding:14px 20px; background:rgba(15,23,42,0.95); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-shrink:0;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                    <span style="color:#ef4444; font-size:22px;">▶</span>
+                    <strong id="modal-video-titulo" style="color:#f8fafc; font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Vídeo Tutorial</strong>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                    <span style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:4px 9px; font-size:11px; color:#94a3b8; display:inline-flex; align-items:center; gap:5px;">
+                        <kbd style="background:rgba(255,255,255,0.18); padding:1px 5px; border-radius:3px; font-weight:700; color:#fff; font-family:monospace; font-size:11px;">ESC</kbd> para fechar
+                    </span>
+                    <a id="video-link-externo" href="#" target="_blank" style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        <span>Abrir no YouTube</span> ↗
+                    </a>
+                    <button type="button" onclick="fecharModalVideo()" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); color:#fca5a5; width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; transition:all 0.2s;" title="Fechar (ESC)">✕</button>
+                </div>
+            </div>
+
+            <!-- Player Video ou Fallback -->
+            <div id="modal-video-iframe-container" style="flex:1; width:100%; position:relative; background:#000; min-height:0;">
+                <iframe id="video-player-iframe" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div id="modal-video-fallback" style="display:none; flex:1; overflow-y:auto; padding:24px; color:#cbd5e1; background:#1e293b;">
+                <!-- Conteúdo do tutorial em texto -->
+            </div>
+
+            <!-- Footer Bar -->
+            <div style="padding:10px 20px; background:rgba(15,23,42,0.9); border-top:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; font-size:12px; color:#94a3b8;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span>💡 Dica: Use os controles do YouTube para colocar em tela cheia máxima ou alterar a velocidade.</span>
+                </div>
+                <button type="button" onclick="fecharModalVideo()" style="background:#475569; color:#fff; font-weight:600; padding:6px 16px; border-radius:8px; border:none; cursor:pointer; font-size:12px;">Concluir e Voltar</button>
+            </div>
+
+        </div>
+    </div>
 
     <!-- ÁREA DE IMPRESSÃO DINÂMICA (VISÍVEL APENAS NA IMPRESSÃO) -->
     <div id="areaImpressaoJurados"></div>

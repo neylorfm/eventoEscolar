@@ -1,4 +1,15 @@
 // =================================================================================
+// 🎥 CONFIGURAÇÃO DE VÍDEOS DE TUTORIAL (YOUTUBE)
+// Cole aqui os links dos vídeos explicativos do YouTube (ex: "https://youtu.be/..." ou "https://www.youtube.com/watch?v=...")
+// Se a variável estiver vazia (""), o sistema exibe o tutorial em texto automaticamente.
+// =================================================================================
+var LINK_VIDEO_CRIAR_PC = "https://www.youtube.com/watch?v=qrbVGJUXWyk";       // Vídeo 1: Criação do botão no Computador
+var LINK_VIDEO_CRIAR_CELULAR = "https://www.youtube.com/watch?v=pev7f8umQW4";  // Vídeo 2: Criação do botão no Celular
+var LINK_VIDEO_COPIAR_PC = "https://www.youtube.com/watch?v=pBtVjQeOFbQ";      // Vídeo 3: Como copiar notas no Computador
+var LINK_VIDEO_COPIAR_CELULAR = "https://www.youtube.com/watch?v=JIoLYI3j680"; // Vídeo 4: Como copiar notas no Celular
+// =================================================================================
+
+// =================================================================================
 // CONFIGURAÇÕES GERAIS (VARIÁVEIS DE CONTROLE)
 // =================================================================================
 const FOLDER_ID_PADRAO = ""; 
@@ -18,12 +29,23 @@ const TEMPO_ESPERA_BLOQUEIO_MS = 15000;
 const NOME_ABA_SETUP = "SETUP";
 const SENHA_PADRAO = "1234567890";
 
+function getConfigVideos() {
+  return {
+    criarPC: LINK_VIDEO_CRIAR_PC,
+    criarCelular: LINK_VIDEO_CRIAR_CELULAR,
+    copiarPC: LINK_VIDEO_COPIAR_PC,
+    copiarCelular: LINK_VIDEO_COPIAR_CELULAR,
+    copiarNotas: LINK_VIDEO_COPIAR_PC // retrocompatibilidade
+  };
+}
+
 // =================================================================================
 // INICIALIZAÇÃO DA INTERFACE
 // =================================================================================
 function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
+  const template = HtmlService.createTemplateFromFile('Index');
+  template.CONFIG_VIDEOS = getConfigVideos();
+  return template.evaluate()
     .setTitle(`Controle - ${NOME_EVENTO}`)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -235,7 +257,8 @@ function getDadosIniciais() {
     nomePastaPlanilhas: NOME_PASTA_PLANILHAS,
     liberadoResultados: liberadoResultados,
     statusLiberacaoTexto: liberadoResultados ? "SIM" : "NÃO",
-    qtdDisciplinas: QTD_DISCIPLINAS
+    qtdDisciplinas: QTD_DISCIPLINAS,
+    configVideos: getConfigVideos()
   };
 }
 
